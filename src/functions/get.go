@@ -1,5 +1,7 @@
-// Package functions defines sensor data model
-// and implements CRUD operations of smart farm.
+/*
+Package functions defines sensor data model
+and implements CRUD operations of smart farm.
+*/
 package functions
 
 // [Start fs_functions_dependencies]
@@ -10,8 +12,6 @@ import (
 	"net/http"
 	"time"
 
-	"google.golang.org/api/iterator"
-
 	"cloud.google.com/go/firestore"
 )
 
@@ -19,9 +19,11 @@ import (
 
 // [Start fs_functions_get]
 
-// get brings records for the last week from Firestore with given uuid.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/get
-func get(writer http.ResponseWriter, req *http.Request) {
+/*
+Get brings records for the last week from Firestore with given uuid.
+exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Get
+*/
+func Get(writer http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 
 	// create new firestore client
@@ -41,28 +43,16 @@ func get(writer http.ResponseWriter, req *http.Request) {
 
 	// create response body
 	var resp struct {
-		records []sensorData
+		records []SensorData
 	}
 
 	now := time.Now().Unix()
 	const weekTime = 7 * 24 * 60 * 60
 
-	// create temporal pointer to store document
-	tmp := new(sensorData)
-
-	cursor := client.Collection("sensor_data").Where("uuid", "==", uuid).Where("unix_time", ">=", now-weekTime).Documents(ctx)
-	for {
-		doc, err := cursor.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			fmt.Fprintf(writer, "firestore.Next: %v\n", err)
-		}
-		doc.DataTo(tmp)
-		resp.records = append(resp.records, *tmp)
+	records, err := client.Collection("sensor_data").Where("uuid", "==", uuid).Where("unix_time", ">=", now-weekTime).Documents(ctx).GetAll()
+	if err != nil {
+		fmt.Fprintf(writer, "firestore.GetAll: %v\n", err)
 	}
-	tmp = nil
 
 	// notify that it's a JSON response
 	writer.Header().Set("Content-Type", "application/json")
