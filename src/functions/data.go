@@ -7,12 +7,13 @@ package functions
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 )
 
 // [Start fs_sensor_data_class]
 
-// SensorData represents a single document of smart farm sensor data collection.
+// SensorData represents a smart farm sensor data.
 type SensorData struct {
 	// unique id of arduino equipment
 	UUID        string  `json:"uuid"`
@@ -30,8 +31,8 @@ type SensorData struct {
 	LED               bool    `json:"led"`
 	Fan               bool    `json:"fan"`
 	// creation time of document
-	UnixTime  int64     `json:"unix_time,omitempty"`
-	LocalTime time.Time `json:"local_time,omitempty"`
+	UnixTime  int64     `json:"unix_time"`
+	LocalTime time.Time `json:"local_time"`
 }
 
 // [End fs_sensor_data_class]
@@ -54,26 +55,31 @@ func (s SensorData) validate() error {
 	return nil
 }
 
-// toDocument converts sensor data to Firestore document.
-func (s SensorData) toDocument() map[string]interface{} {
+// setTime writes creation time to s.
+func (s *SensorData) setTime() {
+	s.LocalTime = time.Now()
+	s.UnixTime = s.LocalTime.Unix()
+}
+
+// toMap converts s to Firestore document.
+func (s SensorData) toMap() map[string]interface{} {
 	doc := make(map[string]interface{})
-
-	// copy data of s to doc
-	doc["uuid"] = s.UUID
-	doc["temperature"] = s.Temperature
-	doc["humidity"] = s.Humidity
-	doc["pH"] = s.PH
-	doc["ec"] = s.EC
-	doc["light"] = s.Light
-	doc["liquid_temperature"] = s.LiquidTemperature
-	doc["liquid_flow_rate"] = s.LiquidFlowRate
-	doc["liquid_level"] = s.LiquidLevel
-	doc["valve"] = s.Valve
-	doc["led"] = s.LED
-	doc["fan"] = s.Fan
-	// update creation time of doc
-	doc["local_time"] = time.Now()
-	doc["unix_time"] = doc["local_time"].(time.Time).Unix()
-
+	// copy values of s to doc
+	val := reflect.ValueOf(s)
+	typ := val.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		tagname := typ.Field(i).Tag.Get("json")
+		doc[tagname] = val.Field(i).Interface()
+	}
 	return doc
+}
+
+// fromMap converts a Firestore document to s.
+func (s *SensorData) fromMap(doc map[string]interface{}) {
+	obj := reflect.ValueOf(s).Elem()
+	typ := obj.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		tagname := typ.Field(i).Tag.Get("json")
+		obj.Field(i).Set(reflect.ValueOf(doc[tagname]))
+	}
 }

@@ -41,6 +41,9 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(writer, "json.Decode: %v\n", err)
 		return
 	}
+	defer req.Body.Close()
+
+	data.setTime()
 
 	// validates data
 	if err = data.validate(); err != nil {
@@ -48,7 +51,7 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	// store data into collection
-	if _, _, err = client.Collection("sensor_data").Add(ctx, data.toDocument()); err != nil {
+	if _, _, err = client.Collection("sensor_data").Add(ctx, data.toMap()); err != nil {
 		fmt.Fprintf(writer, "firestore.Add: %v\n", err)
 		return
 	}

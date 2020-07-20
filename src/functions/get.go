@@ -34,25 +34,35 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 	}
 	defer client.Close()
 
-	// parse uuid from query string
-	uuid := req.URL.Query().Get("uuid")
-	if len(uuid) < 1 {
-		fmt.Fprintln(writer, "URL param uuid is missing")
+	// parse uuid from req
+	var rqst struct {
+		UUID string `json:"uuid"`
+	}
+	if err = json.NewDecoder(req.Body).Decode(&rqst); err != nil {
+		fmt.Fprintf(writer, "json.Decode: %v\n", err)
 		return
 	}
+	defer req.Body.Close()
 
 	// create response body
 	var resp struct {
-		records []SensorData
+		Records []SensorData `json:"records"`
 	}
 
 	now := time.Now().Unix()
 	const weekTime = 7 * 24 * 60 * 60
+	data := new(SensorData)
 
-	records, err := client.Collection("sensor_data").Where("uuid", "==", uuid).Where("unix_time", ">=", now-weekTime).Documents(ctx).GetAll()
+	records, err := client.Collection("sensor_data").Where("uuid", "==", rqst.UUID).Where("unix_time", ">=", now-weekTime).Documents(ctx).GetAll()
 	if err != nil {
 		fmt.Fprintf(writer, "firestore.GetAll: %v\n", err)
 	}
+
+	for _, record := range records {
+		data.fromMap(record.Data())
+		resp.Records = append(resp.Records, *data)
+	}
+	data = nil
 
 	// notify that it's a JSON response
 	writer.Header().Set("Content-Type", "application/json")
