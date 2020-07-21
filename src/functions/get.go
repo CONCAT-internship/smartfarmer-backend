@@ -1,10 +1,6 @@
-/*
-Package functions defines sensor data model
-and implements CRUD operations of smart farm.
-*/
+// Package functions defines sensor data model and implements its CRUD operations.
 package functions
 
-// [Start fs_functions_dependencies]
 import (
 	"context"
 	"encoding/json"
@@ -15,14 +11,8 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-// [End fs_functions_dependencies]
-
-// [Start fs_functions_get]
-
-/*
-Get brings records for the last week from Firestore with given uuid.
-exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Get
-*/
+// Get brings records for the last week from Firestore with given uuid.
+// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Get
 func Get(writer http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 
@@ -34,14 +24,8 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 	}
 	defer client.Close()
 
-	// parse uuid from req
-	var rqst struct {
-		UUID string `json:"uuid"`
-	}
-	if err = json.NewDecoder(req.Body).Decode(&rqst); err != nil {
-		fmt.Fprintf(writer, "json.Decode: %v\n", err)
-		return
-	}
+	// parse uuid from query string
+	uuid := req.URL.Query().Get("uuid")
 	defer req.Body.Close()
 
 	// create response body
@@ -49,20 +33,15 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 		Records []SensorData `json:"records"`
 	}
 
-	now := time.Now().Unix()
-	const weekTime = 7 * 24 * 60 * 60
-	data := new(SensorData)
-
-	records, err := client.Collection("sensor_data").Where("uuid", "==", rqst.UUID).Where("unix_time", ">=", now-weekTime).Documents(ctx).GetAll()
+	// get records for the last week from Firestore in descending order
+	records, err := client.Collection("sensor_data").Where("uuid", "==", uuid).OrderBy("unix_time", firestore.Desc).Where("unix_time", ">=", time.Now().Unix()-7*24*60*60).Documents(ctx).GetAll()
 	if err != nil {
 		fmt.Fprintf(writer, "firestore.GetAll: %v\n", err)
 	}
 
 	for _, record := range records {
-		data.fromMap(record.Data())
-		resp.Records = append(resp.Records, *data)
+		resp.Records = append(resp.Records, Document(record.Data()).toStruct())
 	}
-	data = nil
 
 	// notify that it's a JSON response
 	writer.Header().Set("Content-Type", "application/json")
@@ -71,5 +50,3 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
-
-// [End fs_functions_get]
