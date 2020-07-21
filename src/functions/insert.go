@@ -1,10 +1,6 @@
-/*
-Package functions defines sensor data model
-and implements CRUD operations of smart farm.
-*/
+// Package functions defines sensor data model and implements its CRUD operations.
 package functions
 
-// [Start fs_functions_dependencies]
 import (
 	"context"
 	"encoding/json"
@@ -14,16 +10,10 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-// [End fs_functions_dependencies]
-
 const projectID = "superfarmers"
 
-// [Start fs_functions_insert]
-
-/*
-Insert stores a sensor data into Firestore.
-exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Insert
-*/
+// Insert stores a sensor data into Firestore.
+// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Insert
 func Insert(writer http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 
@@ -57,5 +47,3 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Fprintln(writer, "Successfully stored to Firestore.")
 }
-
-// [End fs_functions_insert]

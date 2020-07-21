@@ -1,7 +1,4 @@
-/*
-Package functions defines sensor data model
-and implements CRUD operations of smart farm.
-*/
+// Package functions defines sensor data model and implements its CRUD operations.
 package functions
 
 import (
@@ -11,9 +8,7 @@ import (
 	"time"
 )
 
-// [Start fs_sensor_data_class]
-
-// SensorData represents a smart farm sensor data.
+// SensorData represents a single sensor data.
 type SensorData struct {
 	// unique id of arduino equipment
 	UUID        string  `json:"uuid"`
@@ -35,7 +30,8 @@ type SensorData struct {
 	LocalTime time.Time `json:"local_time"`
 }
 
-// [End fs_sensor_data_class]
+// Document represents a single document of sensor data collection.
+type Document map[string]interface{}
 
 // validate checks whether there's any invalid value in s or not.
 func (s SensorData) validate() error {
@@ -74,12 +70,14 @@ func (s SensorData) toMap() map[string]interface{} {
 	return doc
 }
 
-// fromMap converts a Firestore document to s.
-func (s *SensorData) fromMap(doc map[string]interface{}) {
+// toStruct converts d to sensord data struct.
+func (d Document) toStruct() SensorData {
+	s := new(SensorData)
 	obj := reflect.ValueOf(s).Elem()
 	typ := obj.Type()
 	for i := 0; i < typ.NumField(); i++ {
 		tagname := typ.Field(i).Tag.Get("json")
-		obj.Field(i).Set(reflect.ValueOf(doc[tagname]))
+		obj.Field(i).Set(reflect.ValueOf(d[tagname]))
 	}
+	return *s
 }
