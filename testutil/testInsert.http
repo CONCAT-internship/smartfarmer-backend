@@ -1,0 +1,17 @@
+POST https://asia-northeast1-superfarmers.cloudfunctions.net/Insert
+Content-Type: application/json
+
+{
+  "uuid": "test",
+  "temperature": 33.3,
+  "humidity": 77.7,
+  "pH": 7.1,
+  "ec": 1.1,
+  "light": 55.5,
+  "liquid_temperature": 31.1,
+  "liquid_flow_rate": 1.11,
+  "liquid_level": false,
+  "valve": true,
+  "led": true,
+  "fan": false
+}
