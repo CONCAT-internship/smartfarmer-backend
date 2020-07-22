@@ -37,13 +37,13 @@ type Document map[string]interface{}
 func (s SensorData) validate() error {
 	var msg string
 	if s.PH < 0 || s.PH > 14 {
-		msg += fmt.Sprintf("Invalid value in pH: %f\n", s.PH)
+		msg += fmt.Sprintf("Invalid value in pH: %f", s.PH)
 	}
 	if s.EC < 0 || s.EC > 2 {
-		msg += fmt.Sprintf("Invalid value in ec: %f\n", s.EC)
+		msg += fmt.Sprintf("Invalid value in ec: %f", s.EC)
 	}
 	if s.Light < 0 || s.Light > 100 {
-		msg += fmt.Sprintf("Invalid value in light intensity: %f\n", s.Light)
+		msg += fmt.Sprintf("Invalid value in light intensity: %f", s.Light)
 	}
 	if len(msg) > 0 {
 		return errors.New(msg)
@@ -67,6 +67,13 @@ func (s SensorData) toMap() map[string]interface{} {
 		tagname := typ.Field(i).Tag.Get("json")
 		doc[tagname] = val.Field(i).Interface()
 	}
+	return doc
+}
+
+func (s SensorData) toLog(err error) map[string]string {
+	doc := make(map[string]string)
+	doc["uuid"] = s.UUID
+	doc["message"] = err.Error()
 	return doc
 }
 

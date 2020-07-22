@@ -18,7 +18,7 @@ func DailyAverage(writer http.ResponseWriter, req *http.Request) {
 
 	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
-		fmt.Fprintf(writer, "firestore.NewClient: %v\n", err)
+		fmt.Fprintf(writer, "firestore.NewClient: %v", err)
 		return
 	}
 	defer client.Close()
@@ -26,7 +26,7 @@ func DailyAverage(writer http.ResponseWriter, req *http.Request) {
 	uuid := req.URL.Query().Get("uuid")
 	unixtime, err := strconv.Atoi(req.URL.Query().Get("unixtime"))
 	if err != nil {
-		fmt.Fprintf(writer, "strconv.Atoi: %v\n", err)
+		fmt.Fprintf(writer, "strconv.Atoi: %v", err)
 		return
 	}
 	defer req.Body.Close()
@@ -45,7 +45,7 @@ func DailyAverage(writer http.ResponseWriter, req *http.Request) {
 
 	records, err := client.Collection("sensor_data").Where("uuid", "==", uuid).OrderBy("unix_time", firestore.Desc).Where("unix_time", ">=", unixtime).Where("unix_time", "<", unixtime+24*60*60).Documents(ctx).GetAll()
 	if err != nil {
-		fmt.Fprintf(writer, "firestore.GetAll: %v\n", err)
+		fmt.Fprintf(writer, "firestore.GetAll: %v", err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func DailyAverage(writer http.ResponseWriter, req *http.Request) {
 
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(resp); err != nil {
-		fmt.Fprintf(writer, "json.Encode: %v\n", err)
+		fmt.Fprintf(writer, "json.Encode: %v", err)
 		return
 	}
 }
