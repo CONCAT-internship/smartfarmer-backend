@@ -2,5 +2,4 @@
 
 Back-end module of smartfarmer
 
-[![build status](https://github.com/CONCAT-internship/smartfarmer-backend/assets/images/build.svg)]
-
+[![build status](https://github.com/CONCAT-internship/smartfarmer-backend/blob/master/assets/images/badge.svg)]
