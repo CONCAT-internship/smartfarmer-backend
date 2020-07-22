@@ -19,7 +19,7 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 	// create new firestore client
 	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
-		fmt.Fprintf(writer, "firestore.NewClient: %v\n", err)
+		fmt.Fprintf(writer, "firestore.NewClient: %v", err)
 		return
 	}
 	defer client.Close()
@@ -36,7 +36,7 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 	// get records for the last week from Firestore in descending order
 	records, err := client.Collection("sensor_data").Where("uuid", "==", uuid).OrderBy("unix_time", firestore.Desc).Where("unix_time", ">=", time.Now().Unix()-7*24*60*60).Documents(ctx).GetAll()
 	if err != nil {
-		fmt.Fprintf(writer, "firestore.GetAll: %v\n", err)
+		fmt.Fprintf(writer, "firestore.GetAll: %v", err)
 	}
 
 	for _, record := range records {
@@ -46,7 +46,7 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 	// notify that it's a JSON response
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(resp); err != nil {
-		fmt.Fprintf(writer, "json.Encode: %v\n", err)
+		fmt.Fprintf(writer, "json.Encode: %v", err)
 		return
 	}
 }
