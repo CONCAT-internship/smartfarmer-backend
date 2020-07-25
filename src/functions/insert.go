@@ -15,7 +15,7 @@ import (
 func Insert(writer http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 
-	client, err := firestore.NewClient(ctx, projectID)
+	client, err := firestore.NewClient(ctx, PROJECT_ID)
 	if err != nil {
 		fmt.Fprintf(writer, "firestore.NewClient: %v", err)
 		return

@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-const projectID = "superfarmers"
-
 // sensorData represents a smart farm sensor data.
 type sensorData struct {
 	// unique id of arduino equipment
@@ -58,30 +56,21 @@ func (s sensorData) validate() error {
 
 // appropriate checks whether the environment is suitable for crop growth.
 func (s sensorData) appropriate() error {
+	// TODO: change to make an error in case of inappropriate data
 	return nil
 }
 
-// toMap converts s to Firestore document.
-func (s sensorData) toMap() map[string]interface{} {
-	doc := make(map[string]interface{})
-	// copy values of s to doc
-	val := reflect.ValueOf(s)
-	typ := val.Type()
-	for i := 0; i < typ.NumField(); i++ {
-		tagname := typ.Field(i).Tag.Get("json")
-		doc[tagname] = val.Field(i).Interface()
-	}
-	return doc
-}
+// document represents a single Firestore document.
+type document map[string]interface{}
 
 // toStruct converts d to sensord data struct.
-// func (d Document) toStruct() sensorData {
-// 	s := new(sensorData)
-// 	obj := reflect.ValueOf(s).Elem()
-// 	typ := obj.Type()
-// 	for i := 0; i < typ.NumField(); i++ {
-// 		tagname := typ.Field(i).Tag.Get("json")
-// 		obj.Field(i).Set(reflect.ValueOf(d[tagname]))
-// 	}
-// 	return *s
-// }
+func (d document) toStruct() sensorData {
+	s := new(sensorData)
+	obj := reflect.ValueOf(s).Elem()
+	typ := obj.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		tagname := typ.Field(i).Tag.Get("json")
+		obj.Field(i).Set(reflect.ValueOf(d[tagname]))
+	}
+	return *s
+}
