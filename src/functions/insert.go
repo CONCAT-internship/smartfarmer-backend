@@ -17,7 +17,7 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 
 	client, err := firestore.NewClient(ctx, PROJECT_ID)
 	if err != nil {
-		fmt.Fprintf(writer, "firestore.NewClient: %v", err)
+		http.Error(writer, fmt.Sprintf("firestore.NewClient: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer client.Close()
@@ -25,7 +25,7 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 	// parse JSON -> sensor data
 	data := new(sensorData)
 	if err = json.NewDecoder(req.Body).Decode(data); err != nil {
-		fmt.Fprintf(writer, "json.Decode: %v", err)
+		http.Error(writer, fmt.Sprintf("json.Decode: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer req.Body.Close()
@@ -34,8 +34,8 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 	data.setTime()
 
 	// store data into Firestore
-	if _, _, err = client.Collection("sensor_data").Add(ctx, data); err != nil {
-		fmt.Fprintf(writer, "firestore.Add: %v", err)
+	if _, _, err = client.Collection("sensor_data").Add(ctx, data.toMap()); err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Add: %v", err), http.StatusInternalServerError)
 		return
 	}
 }

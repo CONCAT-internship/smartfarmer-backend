@@ -38,7 +38,14 @@ func DailyAverage(writer http.ResponseWriter, req *http.Request) {
 	datas := make([][]sensorData, 7)
 	tmp := new(sensorData)
 
-	cursor := client.Collection("sensor_data").Where("uuid", "==", uuid).OrderBy("unix_time", firestore.Asc).Where("unix_time", ">=", base).Where("unix_time", "<", base+7*day_time).Documents(ctx)
+	cursor := client.
+		Collection("sensor_data").
+		Where("uuid", "==", uuid).
+		OrderBy("unix_time", firestore.Desc).
+		Where("unix_time", ">=", base).
+		Where("unix_time", "<", base+7*day_time).
+		Documents(ctx)
+
 	for {
 		doc, err := cursor.Next()
 		if err == iterator.Done {

@@ -60,17 +60,14 @@ func (s sensorData) appropriate() error {
 	return nil
 }
 
-// document represents a single Firestore document.
-type document map[string]interface{}
-
-// toStruct converts d to sensord data struct.
-func (d document) toStruct() sensorData {
-	s := new(sensorData)
-	obj := reflect.ValueOf(s).Elem()
-	typ := obj.Type()
+// toMap converts s to a Firestore document.
+func (s sensorData) toMap() document {
+	doc := make(document)
+	val := reflect.ValueOf(s)
+	typ := val.Type()
 	for i := 0; i < typ.NumField(); i++ {
 		tagname := typ.Field(i).Tag.Get("json")
-		obj.Field(i).Set(reflect.ValueOf(d[tagname]))
+		doc[tagname] = val.Field(i).Interface()
 	}
-	return *s
+	return doc
 }

@@ -27,7 +27,11 @@ func Monitor(writer http.ResponseWriter, req *http.Request) {
 	const cycle = 3
 	base := time.Now().Unix() - 2*cycle*60
 
-	cursor := client.Collection("sensor_data").Where("unix_time", ">=", base).Documents(ctx)
+	cursor := client.
+		Collection("sensor_data").
+		Where("unix_time", ">=", base).
+		Documents(ctx)
+
 	for {
 		doc, err := cursor.Next()
 		if err == iterator.Done {
