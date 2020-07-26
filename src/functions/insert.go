@@ -1,4 +1,4 @@
-// Package functions defines sensor data model and implements its CRUD operations.
+// Package functions defines sensor data model and implements related operations.
 package functions
 
 import (
@@ -10,40 +10,32 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-const projectID = "superfarmers"
-
 // Insert stores a sensor data into Firestore.
 // exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Insert
-func Insert(writer http.ResponseWriter, req *http.Request) {
+func Insert(writer http.ResponseWriter, request *http.Request) {
 	ctx := context.Background()
 
-	// create new firestore client and close it when query is done
-	client, err := firestore.NewClient(ctx, projectID)
+	client, err := firestore.NewClient(ctx, PROJECT_ID)
 	if err != nil {
-		fmt.Fprintf(writer, "firestore.NewClient: %v", err)
+		http.Error(writer, fmt.Sprintf("firestore.NewClient: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer client.Close()
 
-	// create new sensor data and parse json from request body
-	var data SensorData
-	if err = json.NewDecoder(req.Body).Decode(&data); err != nil {
-		fmt.Fprintf(writer, "json.Decode: %v", err)
+	// parse JSON -> sensor data
+	data := new(sensorData)
+	if err = json.NewDecoder(request.Body).Decode(data); err != nil {
+		http.Error(writer, fmt.Sprintf("json.Decode: %v", err), http.StatusBadRequest)
 		return
 	}
-	defer req.Body.Close()
+	defer request.Body.Close()
 
+	// update transmission time
 	data.setTime()
 
-	// validates data
-	if err = data.validate(); err != nil {
-		fmt.Fprintf(writer, "validation failed: %v", err)
-	}
-
-	// store data into collection
+	// store data into Firestore
 	if _, _, err = client.Collection("sensor_data").Add(ctx, data.toMap()); err != nil {
-		fmt.Fprintf(writer, "firestore.Add: %v", err)
+		http.Error(writer, fmt.Sprintf("firestore.Add: %v", err), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintln(writer, "Successfully stored to Firestore.")
 }

@@ -1,4 +1,4 @@
-// Package functions defines sensor data model and implements its CRUD operations.
+// Package functions defines sensor data model and implements related operations.
 package functions
 
 import (
@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// SensorData represents a single sensor data.
-type SensorData struct {
+// sensorData represents a smart farm sensor data.
+type sensorData struct {
 	// unique id of arduino equipment
 	UUID        string  `json:"uuid"`
 	Temperature float64 `json:"temperature"`
@@ -25,16 +25,19 @@ type SensorData struct {
 	Valve             bool    `json:"valve"`
 	LED               bool    `json:"led"`
 	Fan               bool    `json:"fan"`
-	// creation time of document
+	// data transmission time
 	UnixTime  int64     `json:"unix_time"`
 	LocalTime time.Time `json:"local_time"`
 }
 
-// Document represents a single document of sensor data collection.
-type Document map[string]interface{}
+// setTime sets transmission time of s.
+func (s *sensorData) setTime() {
+	s.LocalTime = time.Now()
+	s.UnixTime = s.LocalTime.Unix()
+}
 
-// validate checks whether there's any invalid value in s or not.
-func (s SensorData) validate() error {
+// validate checks whether the sensor works properly.
+func (s sensorData) validate() error {
 	var msg string
 	if s.PH < 0 || s.PH > 14 {
 		msg += fmt.Sprintf("Invalid value in pH: %f", s.PH)
@@ -51,16 +54,15 @@ func (s SensorData) validate() error {
 	return nil
 }
 
-// setTime writes creation time to s.
-func (s *SensorData) setTime() {
-	s.LocalTime = time.Now()
-	s.UnixTime = s.LocalTime.Unix()
+// appropriate checks whether the environment is suitable for crop growth.
+func (s sensorData) appropriate() error {
+	// TODO: change to make an error in case of inappropriate data
+	return nil
 }
 
-// toMap converts s to Firestore document.
-func (s SensorData) toMap() map[string]interface{} {
-	doc := make(map[string]interface{})
-	// copy values of s to doc
+// toMap converts s to a Firestore document.
+func (s sensorData) toMap() document {
+	doc := make(document)
 	val := reflect.ValueOf(s)
 	typ := val.Type()
 	for i := 0; i < typ.NumField(); i++ {
@@ -68,23 +70,4 @@ func (s SensorData) toMap() map[string]interface{} {
 		doc[tagname] = val.Field(i).Interface()
 	}
 	return doc
-}
-
-func (s SensorData) toLog(err error) map[string]string {
-	doc := make(map[string]string)
-	doc["uuid"] = s.UUID
-	doc["message"] = err.Error()
-	return doc
-}
-
-// toStruct converts d to sensord data struct.
-func (d Document) toStruct() SensorData {
-	s := new(SensorData)
-	obj := reflect.ValueOf(s).Elem()
-	typ := obj.Type()
-	for i := 0; i < typ.NumField(); i++ {
-		tagname := typ.Field(i).Tag.Get("json")
-		obj.Field(i).Set(reflect.ValueOf(d[tagname]))
-	}
-	return *s
 }
