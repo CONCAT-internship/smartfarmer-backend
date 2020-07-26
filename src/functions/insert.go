@@ -12,7 +12,7 @@ import (
 
 // Insert stores a sensor data into Firestore.
 // exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Insert
-func Insert(writer http.ResponseWriter, req *http.Request) {
+func Insert(writer http.ResponseWriter, request *http.Request) {
 	ctx := context.Background()
 
 	client, err := firestore.NewClient(ctx, PROJECT_ID)
@@ -24,11 +24,11 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 
 	// parse JSON -> sensor data
 	data := new(sensorData)
-	if err = json.NewDecoder(req.Body).Decode(data); err != nil {
-		http.Error(writer, fmt.Sprintf("json.Decode: %v", err), http.StatusInternalServerError)
+	if err = json.NewDecoder(request.Body).Decode(data); err != nil {
+		http.Error(writer, fmt.Sprintf("json.Decode: %v", err), http.StatusBadRequest)
 		return
 	}
-	defer req.Body.Close()
+	defer request.Body.Close()
 
 	// update transmission time
 	data.setTime()
