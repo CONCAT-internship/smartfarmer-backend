@@ -1,5 +1,4 @@
-// Package functions defines sensor data model and implements related operations.
-package functions
+package shared
 
 import (
 	"errors"
@@ -8,8 +7,8 @@ import (
 	"time"
 )
 
-// sensorData represents a smart farm sensor data.
-type sensorData struct {
+// SensorData represents a smart farm sensor data.
+type SensorData struct {
 	// unique id of arduino equipment
 	UUID        string  `json:"uuid"`
 	Temperature float64 `json:"temperature"`
@@ -30,14 +29,14 @@ type sensorData struct {
 	LocalTime time.Time `json:"local_time"`
 }
 
-// setTime sets transmission time of s.
-func (s *sensorData) setTime() {
+// SetTime sets transmission time of s.
+func (s *SensorData) SetTime() {
 	s.LocalTime = time.Now()
 	s.UnixTime = s.LocalTime.Unix()
 }
 
-// validate checks whether the sensor works properly.
-func (s sensorData) validate() error {
+// Validate checks whether the sensor works properly.
+func (s SensorData) Validate() error {
 	var msg string
 	if s.PH < 0 || s.PH > 14 {
 		msg += fmt.Sprintf("Invalid value in pH: %f", s.PH)
@@ -54,15 +53,15 @@ func (s sensorData) validate() error {
 	return nil
 }
 
-// appropriate checks whether the environment is suitable for crop growth.
-func (s sensorData) appropriate() error {
+// Appropriate checks whether the environment is suitable for crop growth.
+func (s SensorData) Appropriate() error {
 	// TODO: change to make an error in case of inappropriate data
 	return nil
 }
 
-// toMap converts s to a Firestore document.
-func (s sensorData) toMap() document {
-	doc := make(document)
+// ToMap converts s to a Firestore document.
+func (s SensorData) ToMap() Document {
+	doc := make(Document)
 	val := reflect.ValueOf(s)
 	typ := val.Type()
 	for i := 0; i < typ.NumField(); i++ {

@@ -11,6 +11,7 @@ Back-end module of smartfarmer
 0. Index
    1. /Insert
    2. /DailyAverage
+   3. /RecentStatus
 
 
 
@@ -70,3 +71,23 @@ Back-end module of smartfarmer
      - liquid_flow_rate: (number) 일일 유랑 평균
 
    ![sample](https://user-images.githubusercontent.com/29545214/88491867-6c501400-cfe1-11ea-95c4-fb808147b413.png)
+
+3. /RecentStatus
+
+   데이터베이스 해당 기기의 최근 상태값을 반환합니다.
+
+   | method |     path      |    request    |      response      |
+   | :----: | :-----------: | :-----------: | :----------------: |
+   | `GET`  | /RecentStatus | (string) uuid | (JSON) 최근 상태값 |
+
+   - Query string 예시
+
+     - uuid: (string) 아두이노 기기의 고유번호
+
+   - Response body 예시
+
+     - valve: (boolean) 밸브 on/off
+     - led: (boolean) LED on/off
+     - fan: (boolean) 팬 on/off
+
+     ![sample](https://user-images.githubusercontent.com/29545214/88666062-83dee800-d11a-11ea-992e-a70e064ccc5d.png)
