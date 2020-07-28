@@ -1,4 +1,3 @@
-// Package functions defines sensor data model and implements related operations.
 package functions
 
 import (
@@ -8,24 +7,15 @@ import (
 	"net/http"
 	"strconv"
 
-	"google.golang.org/api/iterator"
-
 	"cloud.google.com/go/firestore"
+	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
+	"google.golang.org/api/iterator"
 )
 
 // DailyAverage calculates the average of the sensor data for each day of the week.
 // exported to https://asia-northeast1-superfarmers.cloudfunctions.net/DailyAverage
 func DailyAverage(writer http.ResponseWriter, request *http.Request) {
-	ctx := context.Background()
-
-	client, err := firestore.NewClient(ctx, PROJECT_ID)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("firestore.NewClient: %v", err), http.StatusInternalServerError)
-		return
-	}
-	defer client.Close()
-
-	uuid := request.URL.Query().Get("uuid")
+	var uuid = request.URL.Query().Get("uuid")
 	base, err := strconv.Atoi(request.URL.Query().Get("unixtime"))
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("strconv.Atoi: %v", err), http.StatusBadRequest)
@@ -35,14 +25,14 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 
 	const day_time = 24 * 60 * 60
 
-	datas := make([][]sensorData, 7)
+	var datas = make([][]shared.SensorData, 7)
 
-	cursor := client.Collection("sensor_data").
+	var cursor = client.Collection("sensor_data").
 		Where("uuid", "==", uuid).
 		OrderBy("unix_time", firestore.Desc).
 		Where("unix_time", ">=", base).
 		Where("unix_time", "<", base+7*day_time).
-		Documents(ctx)
+		Documents(context.Background())
 
 	for {
 		doc, err := cursor.Next()
@@ -53,8 +43,8 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 			return
 		}
-		data := document(doc.Data()).toStruct()
-		idx := (int(data.UnixTime) - base) / day_time
+		var data = shared.Document(doc.Data()).ToStruct()
+		var idx = (int(data.UnixTime) - base) / day_time
 		datas[idx] = append(datas[idx], data)
 	}
 
@@ -73,8 +63,8 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func average(datas []sensorData) map[string]float64 {
-	avg := make(map[string]float64)
+func average(datas []shared.SensorData) map[string]float64 {
+	var avg = make(map[string]float64)
 	if len(datas) > 0 {
 		for _, data := range datas {
 			avg["temperature"] += data.Temperature
