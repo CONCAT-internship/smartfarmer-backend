@@ -74,7 +74,7 @@ Back-end module of smartfarmer
 
 3. /RecentStatus
 
-   데이터베이스 해당 기기의 최근 상태값을 반환합니다.
+   데이터베이스에서 해당 기기의 최근 상태값을 찾아 반환합니다.
 
    | method |     path      |    request    |      response      |
    | :----: | :-----------: | :-----------: | :----------------: |
