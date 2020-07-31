@@ -1,0 +1,11 @@
+POST https://asia-northeast1-superfarmers.cloudfunctions.net/Control
+Content-Type: application/json
+
+{
+  "uuid": "test",
+  "status": {
+    "valve": true,
+    "led": false,
+    "fan": true
+  }
+}
