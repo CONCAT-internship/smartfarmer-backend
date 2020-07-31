@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
-
 	"google.golang.org/api/iterator"
 
 	"cloud.google.com/go/firestore"
 )
 
-// RecentStatus returns recent device status.
+// RecentStatus returns the latest status of the farm.
 // exported to https://asia-northeast1-superfarmers.cloudfunctions.net/RecentStatus
 func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 	var uuid = request.URL.Query().Get("uuid")
@@ -30,14 +28,9 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var data = shared.Document(doc.Data()).ToStruct()
 
 	writer.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(writer).Encode(map[string]bool{
-		"valve": data.Valve,
-		"led":   data.LED,
-		"fan":   data.Fan,
-	}); err != nil {
+	if err = json.NewEncoder(writer).Encode(doc.Data()); err != nil {
 		http.Error(writer, fmt.Sprintf("json.Encode: %v", err), http.StatusInternalServerError)
 		return
 	}

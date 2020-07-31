@@ -12,6 +12,8 @@ Back-end module of smartfarmer
    1. /Insert
    2. /DailyAverage
    3. /RecentStatus
+   4. /Control
+   5. /DesiredStatus
 
 
 
@@ -84,10 +86,64 @@ Back-end module of smartfarmer
 
      - uuid: (string) 아두이노 기기의 고유번호
 
+       `uuid=123e6b776f000c04`
+
    - Response body 예시
+   
+     - uuid: (string) 아두이노 기기의 고유 번호
+     - temperature: (number) 온도
+     - humidity: (number) 습도
+     - pH: (number) 배양액 산성 정도
+     - ec: (number) 배양액 이온 정도
+     - light: (number) 조도
+     - liquid_temperature: (number) 수온
+     - liquid_flow_rate: (number) 유량
+     - liquid_level: (boolean) 수위
+     - valve: (boolean) 밸브 on/off
+  - led: (boolean) LED on/off
+     - fan: (boolean) 팬 on/off
+   
+     ![sample]()
+
+
+
+4. /Control
+
+   모바일 앱에서 아두이노 기기를 원격 제어하는 데 사용됩니다.
+
+   **desired_status** 컬렉션의 상태를 변화시키고 아두이노 기기에서 데이터베이스의 변화를 감지하면 사용자가 설정한대로 움직이게 됩니다.
+
+   | method |   path   |       request        |       response       |
+   | :----: | :------: | :------------------: | :------------------: |
+   | `POST` | /Control | (JSON) uuid와 상태값 | (string) 에러 메세지 |
+
+   - Request body 예시
+
+     - uuid: (string) 대상 아두이노 기기의 고유 번호
+     - valve: (boolean) 밸브 on/off
+     - led: (boolean) LED를 on/off
+     - fan: (boolean) 팬을 on/off
+
+     ![sample]()
+
+   
+
+5. /DesiredStatus
+
+   모바일 앱에서 아두이노 기기를 원격 제어할 때, ㅇㅇㅇ
+
+   | method |      path      |    request    |    response    |
+   | :----: | :------------: | :-----------: | :------------: |
+   | `GET`  | /DesiredStatus | (string) uuid | (JSON) 상태 값 |
+
+   - Query string 예시
+
+     `uuid=123e6b776f000c04`
+
+   - Response Body 예시
 
      - valve: (boolean) 밸브 on/off
      - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
 
-     ![sample](https://user-images.githubusercontent.com/29545214/88666062-83dee800-d11a-11ea-992e-a70e064ccc5d.png)
+     ![sample]()
