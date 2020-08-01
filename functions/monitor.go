@@ -11,6 +11,7 @@ import (
 )
 
 // Monitor checks the records for twice the duration of the insertion cycle of sensor data.
+// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Monitor
 func Monitor(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
 
