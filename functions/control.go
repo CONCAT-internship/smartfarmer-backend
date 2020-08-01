@@ -26,7 +26,11 @@ func Control(writer http.ResponseWriter, request *http.Request) {
 
 	if _, err := client.Collection("desired_status").
 		Doc(desired.UUID).
-		Set(context.Background(), desired.Status); err != nil {
+		Set(context.Background(), map[string]bool{
+			"valve": desired.Status.Valve,
+			"led":   desired.Status.LED,
+			"fan":   desired.Status.Fan,
+		}); err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
 		return
 	}

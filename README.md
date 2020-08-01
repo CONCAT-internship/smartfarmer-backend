@@ -100,10 +100,10 @@ Back-end module of smartfarmer
      - liquid_flow_rate: (number) 유량
      - liquid_level: (boolean) 수위
      - valve: (boolean) 밸브 on/off
-  - led: (boolean) LED on/off
+     - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
-   
-     ![sample]()
+     
+     ![sample](https://user-images.githubusercontent.com/29545214/89105731-b7917900-d45e-11ea-91e3-0ef268125c63.png)
 
 
 
@@ -124,16 +124,18 @@ Back-end module of smartfarmer
      - led: (boolean) LED를 on/off
      - fan: (boolean) 팬을 on/off
 
-     ![sample]()
+     ![sample](https://user-images.githubusercontent.com/29545214/89105750-ec9dcb80-d45e-11ea-8887-264cbe1d1ef0.png)
 
    
 
 5. /DesiredStatus
 
-   모바일 앱에서 아두이노 기기를 원격 제어할 때, ㅇㅇㅇ
+   아두이노 기기에서 사용자의 설정을 리스닝할 때 사용됩니다.
 
+   **desired_status** 컬렉션의 상태를 받아 희망하는 상태값을 파악하고, 기기가 이 결과대로 움직이게 해야합니다.
+   
    | method |      path      |    request    |    response    |
-   | :----: | :------------: | :-----------: | :------------: |
+| :----: | :------------: | :-----------: | :------------: |
    | `GET`  | /DesiredStatus | (string) uuid | (JSON) 상태 값 |
 
    - Query string 예시
@@ -141,9 +143,9 @@ Back-end module of smartfarmer
      `uuid=123e6b776f000c04`
 
    - Response Body 예시
-
+   
      - valve: (boolean) 밸브 on/off
-     - led: (boolean) LED on/off
+  - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
-
-     ![sample]()
+   
+     ![sample](https://user-images.githubusercontent.com/29545214/89105841-c3316f80-d45f-11ea-800a-cf970d1b918f.png)
