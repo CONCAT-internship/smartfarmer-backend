@@ -135,7 +135,7 @@ Back-end module of smartfarmer
    **desired_status** 컬렉션의 상태를 받아 희망하는 상태값을 파악하고, 기기가 이 결과대로 움직이게 해야합니다.
    
    | method |      path      |    request    |    response    |
-| :----: | :------------: | :-----------: | :------------: |
+   | :----: | :------------: | :-----------: | :------------: |
    | `GET`  | /DesiredStatus | (string) uuid | (JSON) 상태 값 |
 
    - Query string 예시
@@ -145,7 +145,7 @@ Back-end module of smartfarmer
    - Response Body 예시
    
      - valve: (boolean) 밸브 on/off
-  - led: (boolean) LED on/off
+     - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
    
      ![sample](https://user-images.githubusercontent.com/29545214/89105841-c3316f80-d45f-11ea-800a-cf970d1b918f.png)
