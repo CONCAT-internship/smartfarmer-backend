@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
+
 	"google.golang.org/api/iterator"
 
 	"cloud.google.com/go/firestore"
@@ -28,9 +30,24 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}
+	var data = shared.Document(doc.Data()).ToStruct()
 
 	writer.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(writer).Encode(doc.Data()); err != nil {
+	if err = json.NewEncoder(writer).Encode(map[string]interface{}{
+		"temperature":        round2SecondDecimal(data.Temperature),
+		"humidity":           round2SecondDecimal(data.Humidity),
+		"pH":                 round2SecondDecimal(data.PH),
+		"ec":                 round2SecondDecimal(data.EC),
+		"light":              round2SecondDecimal(data.Light),
+		"liquid_temperature": round2SecondDecimal(data.LiquidTemperature),
+		"liquid_flow_rate":   round2SecondDecimal(data.LiquidFlowRate),
+		"liquid_level":       data.LiquidLevel,
+		"valve":              data.Valve,
+		"led":                data.LED,
+		"fan":                data.Fan,
+		"unix_time":          data.UnixTime,
+		"local_time":         data.LocalTime,
+	}); err != nil {
 		http.Error(writer, fmt.Sprintf("json.Encode: %v", err), http.StatusInternalServerError)
 		return
 	}

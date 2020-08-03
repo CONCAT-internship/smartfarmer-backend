@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -47,7 +48,6 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 		var idx = (int(data.UnixTime) - base) / day_time
 		datas[idx] = append(datas[idx], data)
 	}
-
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(map[string]map[string]float64{
 		"sun": average(datas[0]),
@@ -75,13 +75,17 @@ func average(datas []shared.SensorData) map[string]float64 {
 			avg["liquid_temperature"] += data.LiquidTemperature
 			avg["liquid_flow_rate"] += data.LiquidFlowRate
 		}
-		avg["temperature"] /= float64(len(datas))
-		avg["humidity"] /= float64(len(datas))
-		avg["pH"] /= float64(len(datas))
-		avg["ec"] /= float64(len(datas))
-		avg["light"] /= float64(len(datas))
-		avg["liquid_temperature"] /= float64(len(datas))
-		avg["liquid_flow_rate"] /= float64(len(datas))
+		avg["temperature"] = round2SecondDecimal(avg["temperature"] / float64(len(datas)))
+		avg["humidity"] = round2SecondDecimal(avg["humidity"] / float64(len(datas)))
+		avg["pH"] = round2SecondDecimal(avg["pH"] / float64(len(datas)))
+		avg["ec"] = round2SecondDecimal(avg["ec"] / float64(len(datas)))
+		avg["light"] = round2SecondDecimal(avg["light"] / float64(len(datas)))
+		avg["liquid_temperature"] = round2SecondDecimal(avg["liquid_temperature"] / float64(len(datas)))
+		avg["liquid_flow_rate"] = round2SecondDecimal(avg["liquid_flow_rate"] / float64(len(datas)))
 	}
 	return avg
+}
+
+func round2SecondDecimal(data float64) float64 {
+	return math.Round(data*10) / 10
 }

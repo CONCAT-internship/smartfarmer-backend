@@ -49,7 +49,7 @@ Back-end module of smartfarmer
 
 2. /DailyAverage
 
-   데이터베이스에서 고유번호가 일치하는 기기의 주간 일일 평균 데이터를 반환합니다.
+   데이터베이스에서 고유번호가 일치하는 기기의 주간 일일 평균 데이터를 반환합니다. (각 데이터는 소숫점 둘째자리에서 반올림)
 
    만약 목요일까지의 데이터만 있고 금요일과 토요일의 데이터는 없다면 금요일과 토요일의 평균 데이터는 비어 있게 됩니다. (빈 구조체)
 
@@ -72,11 +72,11 @@ Back-end module of smartfarmer
      - liquid_temperature: (number) 일일 수온 평균
      - liquid_flow_rate: (number) 일일 유랑 평균
 
-   ![sample](https://user-images.githubusercontent.com/29545214/88491867-6c501400-cfe1-11ea-95c4-fb808147b413.png)
+   ![sample](https://user-images.githubusercontent.com/29545214/89208787-feff3d00-d5f7-11ea-8afe-a051e3b1b5e3.png)
 
 3. /RecentStatus
 
-   데이터베이스에서 해당 기기의 최근 상태값을 찾아 반환합니다.
+   데이터베이스에서 해당 기기의 최근 상태값을 찾아 반환합니다. (number형 데이터는 소숫점 둘째자리에서 반올림)
 
    | method |     path      |    request    |      response      |
    | :----: | :-----------: | :-----------: | :----------------: |
@@ -89,8 +89,7 @@ Back-end module of smartfarmer
        `uuid=123e6b776f000c04`
 
    - Response body 예시
-   
-     - uuid: (string) 아두이노 기기의 고유 번호
+
      - temperature: (number) 온도
      - humidity: (number) 습도
      - pH: (number) 배양액 산성 정도
@@ -102,8 +101,10 @@ Back-end module of smartfarmer
      - valve: (boolean) 밸브 on/off
      - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
-     
-     ![sample](https://user-images.githubusercontent.com/29545214/89105731-b7917900-d45e-11ea-91e3-0ef268125c63.png)
+     - unix_time: (number) 데이터 저장 시각
+     - local_time: (timestamp) 데이터 저장 시각 (UTC+0 기준)
+
+     ![sample](https://user-images.githubusercontent.com/29545214/89209154-b72ce580-d5f8-11ea-81ce-c95a2ecd450c.png)
 
 
 
