@@ -21,7 +21,6 @@ type SensorData struct {
 	LiquidTemperature float64 `json:"liquid_temperature"`
 	LiquidFlowRate    float64 `json:"liquid_flow_rate"`
 	LiquidLevel       bool    `json:"liquid_level"`
-	Valve             bool    `json:"valve"`
 	LED               bool    `json:"led"`
 	Fan               bool    `json:"fan"`
 	// data transmission time

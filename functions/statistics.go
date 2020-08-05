@@ -28,7 +28,7 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 
 	var datas = make([][]shared.SensorData, 7)
 
-	var cursor = client.Collection("sensor_data").
+	var cursor = db.Collection("sensor_data").
 		Where("uuid", "==", uuid).
 		OrderBy("unix_time", firestore.Desc).
 		Where("unix_time", ">=", base).

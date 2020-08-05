@@ -13,9 +13,8 @@ func Control(writer http.ResponseWriter, request *http.Request) {
 	var desired = new(struct {
 		UUID   string `json:"uuid"`
 		Status struct {
-			Valve bool `json:"valve"`
-			LED   bool `json:"led"`
-			Fan   bool `json:"fan"`
+			LED bool `json:"led"`
+			Fan bool `json:"fan"`
 		} `json:"status"`
 	})
 	if err := json.NewDecoder(request.Body).Decode(desired); err != nil {
@@ -24,12 +23,11 @@ func Control(writer http.ResponseWriter, request *http.Request) {
 	}
 	defer request.Body.Close()
 
-	if _, err := client.Collection("desired_status").
+	if _, err := db.Collection("desired_status").
 		Doc(desired.UUID).
 		Set(context.Background(), map[string]bool{
-			"valve": desired.Status.Valve,
-			"led":   desired.Status.LED,
-			"fan":   desired.Status.Fan,
+			"led": desired.Status.LED,
+			"fan": desired.Status.Fan,
 		}); err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
 		return

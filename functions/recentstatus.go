@@ -19,7 +19,7 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 	var uuid = request.URL.Query().Get("uuid")
 	defer request.Body.Close()
 
-	doc, err := client.Collection("sensor_data").
+	doc, err := db.Collection("sensor_data").
 		Where("uuid", "==", uuid).
 		OrderBy("unix_time", firestore.Desc).
 		Limit(1).
@@ -42,7 +42,6 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		"liquid_temperature": round2SecondDecimal(data.LiquidTemperature),
 		"liquid_flow_rate":   round2SecondDecimal(data.LiquidFlowRate),
 		"liquid_level":       data.LiquidLevel,
-		"valve":              data.Valve,
 		"led":                data.LED,
 		"fan":                data.Fan,
 		"unix_time":          data.UnixTime,
