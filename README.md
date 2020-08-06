@@ -262,8 +262,8 @@ Back-end module of smartfarmer
            "planting_distance_max_height": 25
          }
        }
-}
-     ```
+    }
+    ```
      
      - email: (string) 사용자 이메일
      - uuid: (string) 기기 고유번호
