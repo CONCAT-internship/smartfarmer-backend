@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
@@ -44,7 +45,7 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 			return
 		}
-		var data = shared.Document(doc.Data()).ToStruct()
+		var data = shared.Document(doc.Data()).ToSensorData()
 		var idx = (int(data.UnixTime) - base) / day_time
 		datas[idx] = append(datas[idx], data)
 	}
@@ -73,7 +74,6 @@ func average(datas []shared.SensorData) map[string]float64 {
 			avg["ec"] += data.EC
 			avg["light"] += data.Light
 			avg["liquid_temperature"] += data.LiquidTemperature
-			avg["liquid_flow_rate"] += data.LiquidFlowRate
 		}
 		avg["temperature"] = round2SecondDecimal(avg["temperature"] / float64(len(datas)))
 		avg["humidity"] = round2SecondDecimal(avg["humidity"] / float64(len(datas)))
@@ -81,11 +81,54 @@ func average(datas []shared.SensorData) map[string]float64 {
 		avg["ec"] = round2SecondDecimal(avg["ec"] / float64(len(datas)))
 		avg["light"] = round2SecondDecimal(avg["light"] / float64(len(datas)))
 		avg["liquid_temperature"] = round2SecondDecimal(avg["liquid_temperature"] / float64(len(datas)))
-		avg["liquid_flow_rate"] = round2SecondDecimal(avg["liquid_flow_rate"] / float64(len(datas)))
 	}
 	return avg
 }
 
 func round2SecondDecimal(data float64) float64 {
 	return math.Round(data*10) / 10
+}
+
+// Records returns records of last period seconds.
+// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Records
+func Records(writer http.ResponseWriter, request *http.Request) {
+	var data = new(struct {
+		UUID string `json:"uuid"`
+		Time int64  `json:"time"`
+		Key  string `json:"key"`
+	})
+	if err := json.NewDecoder(request.Body).Decode(data); err != nil {
+		http.Error(writer, fmt.Sprintf("strconv.Atoi: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer request.Body.Close()
+
+	var records []map[string]interface{}
+
+	var cursor = db.Collection("sensor_data").
+		Where("uuid", "==", data.UUID).
+		OrderBy("unix_time", firestore.Desc).
+		Where("unix_time", ">=", time.Now().Unix()-data.Time).
+		Documents(context.Background())
+
+	for {
+		doc, err := cursor.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
+			return
+		}
+		var record = map[string]interface{}{
+			data.Key:    doc.Data()[data.Key],
+			"unix_time": doc.Data()["unix_time"],
+		}
+		records = append(records, record)
+	}
+	writer.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(writer).Encode(records); err != nil {
+		http.Error(writer, fmt.Sprintf("json.Encode: %v", err), http.StatusInternalServerError)
+		return
+	}
 }

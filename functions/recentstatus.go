@@ -30,7 +30,7 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var data = shared.Document(doc.Data()).ToStruct()
+	var data = shared.Document(doc.Data()).ToSensorData()
 
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(map[string]interface{}{
@@ -40,7 +40,6 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		"ec":                 round2SecondDecimal(data.EC),
 		"light":              round2SecondDecimal(data.Light),
 		"liquid_temperature": round2SecondDecimal(data.LiquidTemperature),
-		"liquid_flow_rate":   round2SecondDecimal(data.LiquidFlowRate),
 		"liquid_level":       data.LiquidLevel,
 		"led":                data.LED,
 		"fan":                data.Fan,

@@ -19,7 +19,6 @@ type SensorData struct {
 	// light intensity
 	Light             float64 `json:"light"`
 	LiquidTemperature float64 `json:"liquid_temperature"`
-	LiquidFlowRate    float64 `json:"liquid_flow_rate"`
 	LiquidLevel       bool    `json:"liquid_level"`
 	LED               bool    `json:"led"`
 	Fan               bool    `json:"fan"`
@@ -49,12 +48,6 @@ func (s SensorData) Validate() error {
 	if len(msg) > 0 {
 		return errors.New(msg)
 	}
-	return nil
-}
-
-// Appropriate checks whether the environment is suitable for crop growth.
-func (s SensorData) Appropriate() error {
-	// TODO: change to make an error in case of inappropriate data
 	return nil
 }
 

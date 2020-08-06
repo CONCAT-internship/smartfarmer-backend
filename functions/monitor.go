@@ -31,15 +31,8 @@ func Monitor(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 			return
 		}
-		var data = shared.Document(doc.Data()).ToStruct()
+		var data = shared.Document(doc.Data()).ToSensorData()
 		if err = data.Validate(); err != nil {
-			db.Collection("abnormal").
-				Add(context.Background(), shared.Document{
-					"uuid":    data.UUID,
-					"message": err.Error(),
-				})
-		}
-		if err = data.Appropriate(); err != nil {
 			db.Collection("abnormal").
 				Add(context.Background(), shared.Document{
 					"uuid":    data.UUID,
