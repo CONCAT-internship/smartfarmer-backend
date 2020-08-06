@@ -262,7 +262,7 @@ Back-end module of smartfarmer
            "planting_distance_max_height": 25
          }
        }
-}
+     }
      ```
      
      - email: (string) 사용자 이메일
@@ -284,4 +284,3 @@ Back-end module of smartfarmer
      - planting_distance_min_height: (number) 재식 거리 최소 세로
      - planting_distance_max_width: (number) 재식 거리 최대 가로
      - planting_distance_max_height: (number) 재식 거리 최대 세로
-
