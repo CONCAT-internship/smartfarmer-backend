@@ -72,8 +72,9 @@ Back-end module of smartfarmer
      - light: (number) 일일 조도 평균
      - liquid_temperature: (number) 일일 수온 평균
    
+
 ![sample](https://user-images.githubusercontent.com/29545214/89208787-feff3d00-d5f7-11ea-8afe-a051e3b1b5e3.png)
-   
+
 3. /RecentStatus
 
    데이터베이스에서 해당 기기의 최근 상태값을 찾아 반환합니다. (number형 데이터는 소숫점 둘째자리에서 반올림)
@@ -122,16 +123,17 @@ Back-end module of smartfarmer
      - led: (boolean) LED를 on/off
      - fan: (boolean) 팬을 on/off
      
-![sample](https://user-images.githubusercontent.com/29545214/89105750-ec9dcb80-d45e-11ea-8887-264cbe1d1ef0.png)
-   
 
-   
+![sample](https://user-images.githubusercontent.com/29545214/89105750-ec9dcb80-d45e-11ea-8887-264cbe1d1ef0.png)
+
+
+
 5. /DesiredStatus
 
    아두이노 기기에서 사용자의 설정을 리스닝할 때 사용됩니다.
 
    **desired_status** 컬렉션의 상태를 받아 희망하는 상태값을 파악하고, 기기가 이 결과대로 움직이게 해야합니다.
-   
+
    | method |      path      |    request    |    response    |
    | :----: | :------------: | :-----------: | :------------: |
    | `GET`  | /DesiredStatus | (string) uuid | (JSON) 상태 값 |
@@ -141,10 +143,11 @@ Back-end module of smartfarmer
      `uuid=123e6b776f000c04`
 
    - Response body 예시
-   
+
      - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
      
+
    ![sample](https://user-images.githubusercontent.com/29545214/89105841-c3316f80-d45f-11ea-800a-cf970d1b918f.png)
 
 6. /Records
@@ -249,17 +252,19 @@ Back-end module of smartfarmer
            "tray_liquid_level": 10,
            "light": 70,
            "light_time": 16,
-           "pH_min": dd,
-           "pH_max": dd,
-           "ec_min": dd,
-           "ec_max": dd,
-           "planting_distance_width": 25,
-           "planting_distance_height": 25
+           "pH_min": 6.0,
+           "pH_max": 6.5,
+           "ec_min": 1.0,
+           "ec_max": 1.5,
+           "planting_distance_min_width": 20,
+           "planting_distance_min_height": 20,
+           "planting_distance_max_width": 25,
+           "planting_distance_max_height": 25
          }
        }
-     }
+}
      ```
-
+     
      - email: (string) 사용자 이메일
      - uuid: (string) 기기 고유번호
      - crop: (string) 작물 명
@@ -275,6 +280,8 @@ Back-end module of smartfarmer
      - pH_max: (number) pH 최대값
      - ec_min: (number) 양액 농도 최소값
      - ec_max: (number) 양액 농도 최대값
-     - planting_distance_width: (number) 재식 거리 가로
-     - planting_distance_height: (number) 재식 거리 세로
+     - planting_distance_min_width: (number) 재식 거리 최소 가로
+     - planting_distance_min_height: (number) 재식 거리 최소 세로
+     - planting_distance_max_width: (number) 재식 거리 최대 가로
+     - planting_distance_max_height: (number) 재식 거리 최대 세로
 
