@@ -18,7 +18,7 @@ func Monitor(writer http.ResponseWriter, request *http.Request) {
 	const cycle = 3
 	var base = time.Now().Unix() - 2*cycle*60
 
-	var cursor = client.Collection("sensor_data").
+	var cursor = db.Collection("sensor_data").
 		Where("unix_time", ">=", base).
 		Documents(context.Background())
 
@@ -31,18 +31,13 @@ func Monitor(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 			return
 		}
-		var data = shared.Document(doc.Data()).ToStruct()
+		var data = shared.Document(doc.Data()).ToSensorData()
 		if err = data.Validate(); err != nil {
-			client.Collection("abnormal").Add(context.Background(), shared.Document{
-				"uuid":    data.UUID,
-				"message": err.Error(),
-			})
-		}
-		if err = data.Appropriate(); err != nil {
-			client.Collection("abnormal").Add(context.Background(), shared.Document{
-				"uuid":    data.UUID,
-				"message": err.Error(),
-			})
+			db.Collection("abnormal").
+				Add(context.Background(), shared.Document{
+					"uuid":    data.UUID,
+					"message": err.Error(),
+				})
 		}
 	}
 }
