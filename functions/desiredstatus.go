@@ -12,7 +12,7 @@ import (
 func DesiredStatus(writer http.ResponseWriter, request *http.Request) {
 	var uuid = request.URL.Query().Get("uuid")
 	defer request.Body.Close()
-	if doc, err := db.Collection("desired_status").
+	if doc, err := client.Collection("desired_status").
 		Doc(uuid).
 		Get(context.Background()); err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Get: %v", err), http.StatusInternalServerError)

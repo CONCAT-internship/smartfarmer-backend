@@ -1,10 +1,27 @@
 package shared
 
 import (
-	"errors"
-	"fmt"
 	"reflect"
 	"time"
+)
+
+const (
+	PH_MIN = 0
+	PH_MAX = 14
+
+	EC_MIN = 0
+	EC_MAX = 2
+
+	LIGHT_MIN = 0
+	LIGHT_MAX = 100
+
+	PH_INC  = 1
+	PH_KEEP = 0
+	PH_DEC  = -1
+
+	EC_INC  = 1
+	EC_KEEP = 0
+	// no way to decrease the value in the EC pump
 )
 
 // SensorData represents a smart farm sensor data.
@@ -33,31 +50,47 @@ func (s *SensorData) SetTime() {
 	s.UnixTime = s.LocalTime.Unix()
 }
 
-// Validate checks whether the sensor works properly.
-func (s SensorData) Validate() error {
-	var msg string
-	if s.PH < 0 || s.PH > 14 {
-		msg += fmt.Sprintf("Invalid value in pH: %f", s.PH)
+// Validate checks whether s works normally and the data of it is appropriate.
+func (s SensorData) Validate(r Recipe) (errorcodes []int) {
+	if s.PH < PH_MIN || s.PH > PH_MAX {
+		errorcodes = append(errorcodes, CODE_PH_MALFUNC)
+	} else if s.PH > r.Condition.PHMax {
+		errorcodes = append(errorcodes, CODE_PH_IMPROPER_HIGH)
+	} else if s.PH < r.Condition.PHMin {
+		errorcodes = append(errorcodes, CODE_PH_IMPROPER_LOW)
 	}
-	if s.EC < 0 || s.EC > 2 {
-		msg += fmt.Sprintf("Invalid value in ec: %f", s.EC)
+	if s.EC < EC_MIN || s.EC > EC_MAX {
+		errorcodes = append(errorcodes, CODE_EC_MALFUNC)
+	} else if s.EC > r.Condition.ECMax {
+		errorcodes = append(errorcodes, CODE_EC_IMPROPER_HIGH)
+	} else if s.EC < r.Condition.ECMin {
+		errorcodes = append(errorcodes, CODE_EC_IMPROPER_LOW)
 	}
 	if s.Light < 0 || s.Light > 100 {
-		msg += fmt.Sprintf("Invalid value in light intensity: %f", s.Light)
+		errorcodes = append(errorcodes, CODE_LIGHT_MALFUNC)
 	}
-	if len(msg) > 0 {
-		return errors.New(msg)
+	if s.Temperature > r.Condition.TemperatureMax {
+		errorcodes = append(errorcodes, CODE_TEMPERATURE_IMPROPER_HIGH)
 	}
-	return nil
+	if s.Temperature < r.Condition.TemperatureMin {
+		errorcodes = append(errorcodes, CODE_TEMPERATURE_IMPROPER_LOW)
+	}
+	if s.Humidity > r.Condition.HumidityMax {
+		errorcodes = append(errorcodes, CODE_HUMIDITY_IMPROPER_HIGH)
+	}
+	if s.Humidity < r.Condition.HumidityMin {
+		errorcodes = append(errorcodes, CODE_HUMIDITY_IMPROPER_LOW)
+	}
+	return
 }
 
 // ToMap converts s to a Firestore document.
 func (s SensorData) ToMap() Document {
-	doc := make(Document)
-	val := reflect.ValueOf(s)
-	typ := val.Type()
+	var doc = make(Document)
+	var val = reflect.ValueOf(s)
+	var typ = val.Type()
 	for i := 0; i < typ.NumField(); i++ {
-		tagname := typ.Field(i).Tag.Get("json")
+		var tagname = typ.Field(i).Tag.Get("json")
 		doc[tagname] = val.Field(i).Interface()
 	}
 	return doc

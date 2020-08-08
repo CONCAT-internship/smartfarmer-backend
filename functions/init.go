@@ -7,16 +7,16 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-// db is a global Firestore client, initialized once per instance.
-var db *firestore.Client
+// client is a global Firestore client, initialized once per instance.
+var client *firestore.Client
 
 func init() {
 	// err is pre-declared to avoid shadowing client.
 	var err error
 
-	// db is initialized with context.Background() because it should
+	// client is initialized with context.Background() because it should
 	// persist between function invocations.
-	db, err = firestore.NewClient(context.Background(), "superfarmers")
+	client, err = firestore.NewClient(context.Background(), "superfarmers")
 	if err != nil {
 		log.Fatalf("firestore.NewClient: %v", err)
 	}

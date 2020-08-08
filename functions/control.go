@@ -23,7 +23,7 @@ func Control(writer http.ResponseWriter, request *http.Request) {
 	}
 	defer request.Body.Close()
 
-	if _, err := db.Collection("desired_status").
+	if _, err := client.Collection("desired_status").
 		Doc(desired.UUID).
 		Set(context.Background(), map[string]bool{
 			"led": desired.Status.LED,

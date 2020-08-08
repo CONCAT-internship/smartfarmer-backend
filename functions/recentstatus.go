@@ -19,7 +19,7 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 	var uuid = request.URL.Query().Get("uuid")
 	defer request.Body.Close()
 
-	doc, err := db.Collection("sensor_data").
+	doc, err := client.Collection("sensor_data").
 		Where("uuid", "==", uuid).
 		OrderBy("unix_time", firestore.Desc).
 		Limit(1).
