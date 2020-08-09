@@ -10,7 +10,6 @@ Back-end module of smartfarmer
 
 0. Index
    1. /Insert
-   2. /DailyAverage
    3. /RecentStatus
    4. /Control
    5. /DesiredStatus
@@ -30,6 +29,8 @@ Back-end module of smartfarmer
 
    데이터베이스에 센서 데이터를 저장합니다.
 
+   데이터 검수 과정 중 이상값이 감지되면 **abnormal** 컬렉션과 **desired_status** 컬렉션의 값을 업데이트합니다.
+
    | method |  path   |                request                |       response       |
    | :----: | :-----: | :-----------------------------------: | :------------------: |
    | `POST` | /Insert | (JSON) uuid를 포함한 센서 데이터 정보 | (string) 에러 메세지 |
@@ -45,37 +46,80 @@ Back-end module of smartfarmer
      - liquid_level: (boolean) 수위
      - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
-   
-   ![sample](https://user-images.githubusercontent.com/29545214/88491674-956fa500-cfdf-11ea-9be0-3cbbc0910614.png)
 
-2. /DailyAverage
+     ```json
+     {
+       "uuid": "756e6b776f000c04",
+       "temperature": 27.4,
+       "humidity": 66.1,
+       "pH": 6.3,
+       "ec": 0.9,
+       "light": 70,
+       "liquid_temperature": 25,
+       "liquid_level": false,
+       "led": true,
+       "fan": true
+     }
+     ```
 
-   데이터베이스에서 고유번호가 일치하는 기기의 주간 일일 평균 데이터를 반환합니다. (각 데이터는 소숫점 둘째자리에서 반올림)
+     
 
-   만약 목요일까지의 데이터만 있고 금요일과 토요일의 데이터는 없다면 금요일과 토요일의 평균 데이터는 비어 있게 됩니다. (빈 구조체)
+     데이터에 이상값이 감지되면 **abnormal** 컬렉션엔 다음과 같은 정보가 기록됩니다.
 
-   | method |     path      |            request             |           response           |
-   | :----: | :-----------: | :----------------------------: | :--------------------------: |
-   | `GET`  | /DailyAverage | (string) uuid와 주의 시작 시각 | (JSON) 주간 일일 평균 데이터 |
+     ```json
+     {
+       "uuid": "756e6b776f000c04",
+       "errors": [
+         5011,
+         5020,
+         ...
+       ]
+     }
+     ```
 
-   - Query string 예시
-     -	uuid: (string) 아두이노 기기의 고유번호
-     -	unixtime: (number) 해당 주의 일요일 0시 0분 0초의 유닉스 시간. (UTC+0 기준)
+     - uuid: (string) 아두이노 기기의 고유 번호
+     - errors: (Array&lt;number&gt;) 에러 코드
 
-     `uuid=123e6b776f000c04&unixtime=1595116800`
+     다음은 `errors` 필드의 에러 코드들에 대한 명세입니다.
 
-   - Response body 예시
-     - temperature: (number) 일일 기온 평균
-     - humidity: (number) 일일 습도 평균
-     - pH: (number) 일일 산성도 평균
-     - ec: (number) 일일 이온 농도 평균
-     - light: (number) 일일 조도 평균
-     - liquid_temperature: (number) 일일 수온 평균
-   
+     ```bash
+     7000: CODE_DATA_EMPTY (기기에서 값을 보내지 못했음. 기기 고장)
+     
+     4000: CODE_PH_MALFUNC (기기에서 보낸 pH 값이 측정 범위를 벗어남. pH 센서 고장)
+     4001: CODE_EC_MALFUNC (기기에서 보낸 ec 값이 측정 범위를 벗어남. ec 센서 고장)
+     4002: CODE_LIGHT_MALFUNC (기기에서 보낸 조도 값이 측정 범위를 벗어남. 조도 센서 고장)
+     
+     5000: CODE_PH_IMPROPER_HIGH (pH 값이 레시피에서 정한 범위 초과. pH 펌프를 닫아 pH를 낮춤)
+     5001: CODE_PH_IMPROPER_LOW (pH 값이 레시피에서 정한 범위 미만. pH 펌프를 열어 PH를 높임)
+     5010: CODE_EC_IMPROPER_HIGH (ec 값이 레시피에서 정한 범위 초과. ec 펌프를 열어 ec를 높임)
+     5011: CODE_EC_IMPROPER_LOW (ec 값이 레시피에서 정한 범위 미만)
+     5020: CODE_TEMPERATURE_IMPROPER_HIGH (온도가 레시피에서 정한 범위 초과. fan을 가동시켜 온도를 낮춤)
+     5021: CODE_TEMPERATURE_IMPROPER_LOW (온도가 레시피에서 정한 범위 미만. fan을 중지시켜 온도를 높임)
+     5030: CODE_HUMIDITY_IMPROPER_HIGH (습도가 레시피에서 정한 범위 초과)
+     5031: CODE_HUMIDITY_IMPROPER_LOW (습도가 레시피에서 정한 범위 미만)
+     ```
 
-![sample](https://user-images.githubusercontent.com/29545214/89208787-feff3d00-d5f7-11ea-8afe-a051e3b1b5e3.png)
+     
 
-3. /RecentStatus
+     또한 **desired_status** 컬렉션의 document id가 uuid와 일치하는 문서를 다음과 같이 업데이트합니다.
+
+     ```json
+     {
+       "led": false,
+       "fan": true,
+       "ph_pump": 1,
+       "ec_pump": 0
+     }
+     ```
+
+     이에 대한 내용은 `DesiredStatus` API를 호출하여 확인할 수 있습니다.
+
+     `4. /DesiredStatus` 를 참고해주세요.
+
+     
+
+
+2. /RecentStatus
 
    데이터베이스에서 해당 기기의 최근 상태값을 찾아 반환합니다. (number형 데이터는 소숫점 둘째자리에서 반올림)
 
@@ -103,11 +147,25 @@ Back-end module of smartfarmer
      - unix_time: (number) 데이터 저장 시각
      - local_time: (timestamp) 데이터 저장 시각 (UTC+0 기준)
      
-     ![sample](https://user-images.githubusercontent.com/29545214/89209154-b72ce580-d5f8-11ea-81ce-c95a2ecd450c.png)
+     ```json
+     {
+       "temperature": 27.4,
+       "humidity": 66.1,
+       "pH": 6.3,
+       "ec": 1.3,
+       "light": 70,
+       "liquid_temperature": 25,
+       "liquid_level": false,
+       "led": true,
+       "fan": true,
+       "unix_time": 1596694932,
+       "local_time": "2020-08-09 10:46:13.613475 +0900 KST m=+0.000062068"
+     }
+     ```
+     
+     
 
-
-
-4. /Control
+3. /Control
 
    모바일 앱에서 아두이노 기기를 원격 제어하는 데 사용됩니다.
 
@@ -123,12 +181,19 @@ Back-end module of smartfarmer
      - led: (boolean) LED를 on/off
      - fan: (boolean) 팬을 on/off
      
+     ```json
+     {
+       "uuid": "756e6b776f000c04",
+       "status": {
+         "led": false,
+         "fan": true
+       }
+     }
+     ```
+     
+     
 
-![sample](https://user-images.githubusercontent.com/29545214/89105750-ec9dcb80-d45e-11ea-8887-264cbe1d1ef0.png)
-
-
-
-5. /DesiredStatus
+4. /DesiredStatus
 
    아두이노 기기에서 사용자의 설정을 리스닝할 때 사용됩니다.
 
@@ -146,11 +211,21 @@ Back-end module of smartfarmer
 
      - led: (boolean) LED on/off
      - fan: (boolean) 팬 on/off
+     - pH_pump: (number) pH 펌프 조절 정도 (1: pH 증가, 0: 유지, -1: pH 감소)
+     - ec_pump: (number) ec 펌프 조절 정도 (1: ec 증가, 0: 유지)
+     
+     ```json
+     {
+       "led": false,
+       "fan": true,
+       "pH_pump": 1,
+       "ec_pump": 0
+     }
+     ```
+     
      
 
-   ![sample](https://user-images.githubusercontent.com/29545214/89105841-c3316f80-d45f-11ea-800a-cf970d1b918f.png)
-
-6. /Records
+5. /Records
 
    특정 필드의 최근 기록들을 불러옵니다.
 
@@ -180,30 +255,23 @@ Back-end module of smartfarmer
      {
        [
        	{
-           "ec": 1.8,
-           "unix_time":1596695118
+           "ec": 1.5,
+           "local_time": "2020-08-09 10:46:13.613475 +0900 KST m=+0.000062068"
          },
        	{
-           "ec": 1.9,
-           "unix_time": 1596694938
+           "ec": 1.4,
+           "local_time": "2020-08-09 10:49:13.964827 +0900 KST m=+0.000117172"
          },
-       	{
-           "ec": 1.7,
-           "unix_time": 1596694935
-         },
-       	{
-           "ec": 1.6,
-           "unix_time": 1596694932
-         }
+       	...
        ]
      }
      ```
-
-     - unix_time: (number) 해당 기록의 등록 시간
-
+     
+     - local_time: (timestamp) 해당 기록의 등록 시간
    
-
-7. /RegisterDevice
+   
+   
+6. /RegisterDevice
 
    새로운 기기 정보를 등록합니다.
 
@@ -225,7 +293,7 @@ Back-end module of smartfarmer
 
    
 
-8. /RegisterRecipe
+7. /RegisterRecipe
 
    작물 재배 레시피를 등록합니다.
 
@@ -284,3 +352,4 @@ Back-end module of smartfarmer
      - planting_distance_min_height: (number) 재식 거리 최소 세로
      - planting_distance_max_width: (number) 재식 거리 최대 가로
      - planting_distance_max_height: (number) 재식 거리 최대 세로
+

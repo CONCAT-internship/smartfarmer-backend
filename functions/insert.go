@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"cloud.google.com/go/firestore"
+
+	"google.golang.org/api/iterator"
+
 	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
 )
 
@@ -26,7 +30,7 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 		Documents(context.Background()).
 		Next()
 
-	if err != nil {
+	if err != iterator.Done && err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -39,6 +43,11 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 	}
 	var recipe = shared.Document(doc.Data()).ToRecipe()
 	var errorcodes = data.Validate(recipe)
+	var requirements = map[string]interface{}{
+		"pH_pump": shared.PH_KEEP,
+		"ec_pump": shared.EC_KEEP,
+	}
+
 	if len(errorcodes) > 0 { // something wrong in the data
 		if _, _, err = client.Collection("abnormal").
 			Add(context.Background(), map[string]interface{}{
@@ -46,6 +55,33 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 				"errors": errorcodes,
 			}); err != nil {
 			http.Error(writer, fmt.Sprintf("firestore.Add: %v", err), http.StatusInternalServerError)
+			return
+		}
+		for _, code := range errorcodes {
+			switch code {
+			case shared.CODE_PH_IMPROPER_HIGH:
+				requirements["pH_pump"] = shared.PH_DEC
+			case shared.CODE_PH_IMPROPER_LOW:
+				requirements["pH_pump"] = shared.PH_INC
+			case shared.CODE_EC_IMPROPER_HIGH:
+				fallthrough
+			case shared.CODE_EC_IMPROPER_LOW:
+				requirements["ec_pump"] = shared.EC_INC
+			case shared.CODE_TEMPERATURE_IMPROPER_HIGH:
+				requirements["fan"] = true
+			case shared.CODE_TEMPERATURE_IMPROPER_LOW:
+				requirements["fan"] = false
+			case shared.CODE_HUMIDITY_IMPROPER_HIGH:
+				fallthrough
+			case shared.CODE_HUMIDITY_IMPROPER_LOW:
+				fallthrough
+			default:
+			}
+		}
+		if _, err = client.Collection("desired_status").
+			Doc(data.UUID).
+			Set(context.Background(), requirements, firestore.MergeAll); err != nil {
+			http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
 			return
 		}
 	}
