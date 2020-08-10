@@ -4,7 +4,6 @@ Content-Type: application/json
 {
   "uuid": "test",
   "status": {
-    "valve": true,
     "led": false,
     "fan": true
   }
