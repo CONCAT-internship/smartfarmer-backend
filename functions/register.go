@@ -25,7 +25,7 @@ func RegisterDevice(writer http.ResponseWriter, request *http.Request) {
 	}
 	defer request.Body.Close()
 
-	doc, err := db.Collection("farmers").
+	doc, err := client.Collection("farmers").
 		Where("email", "==", data.Email).
 		Documents(context.Background()).
 		Next()
@@ -57,12 +57,12 @@ func RegisterRecipe(writer http.ResponseWriter, request *http.Request) {
 	}
 	defer request.Body.Close()
 
-	doc, err := db.Collection("farmers").
+	doc, err := client.Collection("farmers").
 		Where("email", "==", data.Email).
 		Documents(context.Background()).
 		Next()
 
-	if err != nil {
+	if err != iterator.Done && err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}

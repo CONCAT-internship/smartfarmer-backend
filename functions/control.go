@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"cloud.google.com/go/firestore"
 )
 
 // Control changes the device state by chaning the desired status.
@@ -23,12 +25,12 @@ func Control(writer http.ResponseWriter, request *http.Request) {
 	}
 	defer request.Body.Close()
 
-	if _, err := db.Collection("desired_status").
+	if _, err := client.Collection("desired_status").
 		Doc(desired.UUID).
 		Set(context.Background(), map[string]bool{
 			"led": desired.Status.LED,
 			"fan": desired.Status.Fan,
-		}); err != nil {
+		}, firestore.MergeAll); err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
 		return
 	}

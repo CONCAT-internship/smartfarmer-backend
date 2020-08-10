@@ -19,7 +19,7 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 	var uuid = request.URL.Query().Get("uuid")
 	defer request.Body.Close()
 
-	doc, err := db.Collection("sensor_data").
+	doc, err := client.Collection("sensor_data").
 		Where("uuid", "==", uuid).
 		OrderBy("unix_time", firestore.Desc).
 		Limit(1).
@@ -30,7 +30,8 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var data = shared.Document(doc.Data()).ToSensorData()
+	var data = new(shared.SensorData)
+	doc.DataTo(data)
 
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(map[string]interface{}{

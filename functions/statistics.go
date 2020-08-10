@@ -29,7 +29,7 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 
 	var datas = make([][]shared.SensorData, 7)
 
-	var cursor = db.Collection("sensor_data").
+	var cursor = client.Collection("sensor_data").
 		Where("uuid", "==", uuid).
 		OrderBy("unix_time", firestore.Desc).
 		Where("unix_time", ">=", base).
@@ -45,9 +45,10 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 			return
 		}
-		var data = shared.Document(doc.Data()).ToSensorData()
+		var data = new(shared.SensorData)
+		doc.DataTo(data)
 		var idx = (int(data.UnixTime) - base) / day_time
-		datas[idx] = append(datas[idx], data)
+		datas[idx] = append(datas[idx], *data)
 	}
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(map[string]map[string]float64{
@@ -105,7 +106,7 @@ func Records(writer http.ResponseWriter, request *http.Request) {
 
 	var records []map[string]interface{}
 
-	var cursor = db.Collection("sensor_data").
+	var cursor = client.Collection("sensor_data").
 		Where("uuid", "==", data.UUID).
 		OrderBy("unix_time", firestore.Desc).
 		Where("unix_time", ">=", time.Now().Unix()-data.Time).
@@ -121,8 +122,8 @@ func Records(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 		var record = map[string]interface{}{
-			data.Key:    doc.Data()[data.Key],
-			"unix_time": doc.Data()["unix_time"],
+			data.Key:     doc.Data()[data.Key],
+			"local_time": doc.Data()["local_time"],
 		}
 		records = append(records, record)
 	}
