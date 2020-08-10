@@ -45,9 +45,10 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 			return
 		}
-		var data = shared.Document(doc.Data()).ToSensorData()
+		var data = new(shared.SensorData)
+		doc.DataTo(data)
 		var idx = (int(data.UnixTime) - base) / day_time
-		datas[idx] = append(datas[idx], data)
+		datas[idx] = append(datas[idx], *data)
 	}
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(map[string]map[string]float64{

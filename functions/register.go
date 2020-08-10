@@ -62,7 +62,7 @@ func RegisterRecipe(writer http.ResponseWriter, request *http.Request) {
 		Documents(context.Background()).
 		Next()
 
-	if err != nil {
+	if err != iterator.Done && err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}

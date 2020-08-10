@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"cloud.google.com/go/firestore"
 
@@ -41,42 +42,21 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.Get: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var recipe = shared.Document(doc.Data()).ToRecipe()
-	var errorcodes = data.Validate(recipe)
-	var requirements = map[string]interface{}{
-		"pH_pump": shared.PH_KEEP,
-		"ec_pump": shared.EC_KEEP,
+	var recipe = new(shared.Recipe)
+	if err = doc.DataTo(recipe); err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.DataTo: %v", err), http.StatusInternalServerError)
 	}
+	errorCodes, requirements := data.Validate(*recipe)
 
-	if len(errorcodes) > 0 { // something wrong in the data
+	if len(errorCodes) > 0 { // something wrong in the data
 		if _, _, err = client.Collection("abnormal").
 			Add(context.Background(), map[string]interface{}{
 				"uuid":   data.UUID,
-				"errors": errorcodes,
+				"errors": errorCodes,
+				"time":   time.Now().Unix(),
 			}); err != nil {
 			http.Error(writer, fmt.Sprintf("firestore.Add: %v", err), http.StatusInternalServerError)
 			return
-		}
-		for _, code := range errorcodes {
-			switch code {
-			case shared.CODE_PH_IMPROPER_HIGH:
-				requirements["pH_pump"] = shared.PH_DEC
-			case shared.CODE_PH_IMPROPER_LOW:
-				requirements["pH_pump"] = shared.PH_INC
-			case shared.CODE_EC_IMPROPER_HIGH:
-				fallthrough
-			case shared.CODE_EC_IMPROPER_LOW:
-				requirements["ec_pump"] = shared.EC_INC
-			case shared.CODE_TEMPERATURE_IMPROPER_HIGH:
-				requirements["fan"] = true
-			case shared.CODE_TEMPERATURE_IMPROPER_LOW:
-				requirements["fan"] = false
-			case shared.CODE_HUMIDITY_IMPROPER_HIGH:
-				fallthrough
-			case shared.CODE_HUMIDITY_IMPROPER_LOW:
-				fallthrough
-			default:
-			}
 		}
 		if _, err = client.Collection("desired_status").
 			Doc(data.UUID).
