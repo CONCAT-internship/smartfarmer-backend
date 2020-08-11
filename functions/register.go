@@ -98,9 +98,9 @@ func CheckDeviceOverlap(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	for _, doc := range snapshot {
-		var uuids = doc.Data()["device_uuid"].([]string)
+		var uuids = doc.Data()["device_uuid"].([]interface{})
 		for _, uuid := range uuids {
-			if device.UUID == uuid {
+			if device.UUID == uuid.(string) {
 				http.Error(writer, fmt.Sprintf("duplicate id: %s", uuid), http.StatusForbidden)
 			}
 		}
