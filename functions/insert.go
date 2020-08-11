@@ -76,9 +76,10 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 	}
 	if _, err = client.Collection("desired_status").
 		Doc(data.UUID).
-		Set(context.Background(), map[string]interface{}{
-			"led": LEDoption,
-		}, firestore.MergeAll); err != nil {
+		Set(context.Background(),
+			map[string]interface{}{
+				"led": LEDoption,
+			}, firestore.MergeAll); err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -86,11 +87,12 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 
 	if len(errorCodes) > 0 { // something wrong in the data
 		if _, _, err = client.Collection("abnormal").
-			Add(context.Background(), map[string]interface{}{
-				"uuid":   data.UUID,
-				"errors": errorCodes,
-				"time":   time.Now().Unix(),
-			}); err != nil {
+			Add(context.Background(),
+				map[string]interface{}{
+					"uuid":   data.UUID,
+					"errors": errorCodes,
+					"time":   time.Now().Unix(),
+				}); err != nil {
 			http.Error(writer, fmt.Sprintf("firestore.Add: %v", err), http.StatusInternalServerError)
 			return
 		}
