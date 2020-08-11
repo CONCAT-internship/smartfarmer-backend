@@ -5,6 +5,7 @@ import "reflect"
 // Recipe represents a crop growth recipe.
 type Recipe struct {
 	Crop                      string  `json:"crop"`
+	FarmName                  string  `json:"farm_name"`
 	TemperatureMin            float64 `json:"temperature_min"`
 	TemperatureMax            float64 `json:"temperature_max"`
 	HumidityMin               float64 `json:"humidity_min"`
