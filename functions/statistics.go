@@ -46,7 +46,7 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 		var data = new(shared.SensorData)
-		doc.DataTo(data)
+		data.FromMap(doc.Data())
 		var idx = (int(data.UnixTime) - base) / day_time
 		datas[idx] = append(datas[idx], *data)
 	}
