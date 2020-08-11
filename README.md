@@ -16,6 +16,7 @@ Back-end module of smartfarmer
    6. /Records
    7. /RegisterDevice
    8. /RegisterRecipe
+   8. /CheckDeviceOverlap
 
 
 
@@ -210,11 +211,12 @@ Back-end module of smartfarmer
 
    - Request body 예시
 
-     ​	![sample](https://user-images.githubusercontent.com/29545214/89780441-69f6c980-db4c-11ea-805e-2c03aa532c48.png)
+     ​	![sample](https://user-images.githubusercontent.com/29545214/89899596-80208a80-dc1d-11ea-91a7-f45f687788c3.png)
      
      - email: (string) 사용자 이메일
      - uuid: (string) 기기 고유번호
-     - crop: (string) 작물 명
+     - crop: (string) 작물명
+     - farm_name: (string) 농장명
      - temperature_min: (number) 온도 최소값
      - temperature_max: (number) 온도 최대값
      - humidity_min: (number) 습도 최소값
@@ -231,4 +233,24 @@ Back-end module of smartfarmer
      - planting_distance_min_height: (number) 재식 거리 최소 세로
      - planting_distance_max_width: (number) 재식 거리 최대 가로
      - planting_distance_max_height: (number) 재식 거리 최대 세로
+
+
+
+8. /CheckDeviceOverlap
+
+   기기 중복 여부를 검사합니다.
+
+   만약 DB에 uuid가 동일한 기기가 등록돼있다면 403 에러를 반환합니다.
+
+   uuid가 동일한 기기가 없다면 200 OK를 반환합니다.
+
+   | method |        path         |   request   |       response       |
+   | :----: | :-----------------: | :---------: | :------------------: |
+   | `POST` | /CheckDeviceOverlap | (JSON) uuid | (string) 에러 메세지 |
+
+   - Request body 예시
+
+     ![sample](https://user-images.githubusercontent.com/29545214/89897823-9842da80-dc1a-11ea-8c33-1d87513e8362.png)
+
+     - uuid: (string) 기기 고유 번호
 

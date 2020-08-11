@@ -9,6 +9,7 @@ func TestRecipe_FromMap(t *testing.T) {
 	var recipe = new(Recipe)
 	recipe.FromMap(map[string]interface{}{
 		"crop":                         "basil",
+		"farm_name":                    "my_farm",
 		"ec_max":                       1.5,
 		"ec_min":                       int64(1),
 		"humidity_max":                 int64(60),
@@ -28,6 +29,7 @@ func TestRecipe_FromMap(t *testing.T) {
 	})
 	var target = Recipe{
 		Crop:                      "basil",
+		FarmName:                  "my_farm",
 		ECMax:                     1.5,
 		ECMin:                     1.0,
 		HumidityMax:               60.0,
