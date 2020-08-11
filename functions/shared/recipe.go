@@ -34,3 +34,18 @@ func (r Recipe) ToMap() map[string]interface{} {
 	}
 	return doc
 }
+
+// FromMap binds a Firestore document to r.
+func (r *Recipe) FromMap(doc map[string]interface{}) {
+	var val = reflect.ValueOf(r).Elem()
+	var typ = val.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		var tagname = typ.Field(i).Tag.Get("json")
+		switch doc[tagname].(type) {
+		case int64: // avoid type mismatch
+			val.Field(i).Set(reflect.ValueOf(float64(doc[tagname].(int64))))
+		default:
+			val.Field(i).Set(reflect.ValueOf(doc[tagname]))
+		}
+	}
+}

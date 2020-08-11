@@ -26,6 +26,7 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 
 	data.SetTime()
 
+	// find recipe
 	farmer, err := client.Collection("farmers").
 		Where("device_uuid", "array-contains", data.UUID).
 		Documents(context.Background()).
@@ -43,8 +44,43 @@ func Insert(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	var recipe = new(shared.Recipe)
-	if err = doc.DataTo(recipe); err != nil {
-		http.Error(writer, fmt.Sprintf("firestore.DataTo: %v", err), http.StatusInternalServerError)
+	recipe.FromMap(doc.Data())
+
+	lastDoc, err := client.Collection("sensor_data").
+		Where("uuid", "==", data.UUID).
+		OrderBy("unix_time", firestore.Desc).
+		Limit(1).
+		Documents(context.Background()).
+		Next()
+
+	if err != iterator.Done && err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
+		return
+	}
+	var lastData = new(shared.SensorData)
+	lastData.FromMap(lastDoc.Data())
+
+	if data.LED { // if LED is on, increase daylight time and compare with the recipe
+		data.LightTime = lastData.LightTime + shared.TRANSMISSION_CYCLE
+	} else {
+		data.DarkTime = lastData.DarkTime + shared.TRANSMISSION_CYCLE
+	}
+	var LEDoption bool
+	if data.LightTime >= recipe.LightTime*60 { // if daylight time is exceeded, request to LED off
+		LEDoption = false
+		data.LightTime = 0
+	}
+	if data.DarkTime >= (24-recipe.LightTime)*60 { // if dark time is exceeded, request to LED on
+		LEDoption = true
+		data.DarkTime = 0
+	}
+	if _, err = client.Collection("desired_status").
+		Doc(data.UUID).
+		Set(context.Background(), map[string]interface{}{
+			"led": LEDoption,
+		}, firestore.MergeAll); err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
+		return
 	}
 	errorCodes, requirements := data.Validate(*recipe)
 

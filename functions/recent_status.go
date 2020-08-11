@@ -31,7 +31,7 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	var data = new(shared.SensorData)
-	doc.DataTo(data)
+	data.FromMap(doc.Data())
 
 	writer.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(writer).Encode(map[string]interface{}{

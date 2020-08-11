@@ -22,6 +22,8 @@ const (
 	EC_INC  = 1
 	EC_KEEP = 0
 	// no way to decrease the value in the EC pump
+
+	TRANSMISSION_CYCLE = 3 // data transmission cycle of from device
 )
 
 // SensorData represents a smart farm sensor data.
@@ -38,6 +40,8 @@ type SensorData struct {
 	Fan               bool      `json:"fan"`
 	UnixTime          int64     `json:"unix_time"` // data transmission time
 	LocalTime         time.Time `json:"local_time"`
+	LightTime         float64   `json:"light_time"`
+	DarkTime          float64   `json:"dark_time"`
 }
 
 // SetTime sets transmission time of s.
@@ -100,4 +104,23 @@ func (s SensorData) ToMap() map[string]interface{} {
 		doc[tagname] = val.Field(i).Interface()
 	}
 	return doc
+}
+
+// FromMap binds a Firestore document to s.
+func (s *SensorData) FromMap(doc map[string]interface{}) {
+	var val = reflect.ValueOf(s).Elem()
+	var typ = val.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		var tagname = typ.Field(i).Tag.Get("json")
+		if tagname == "unix_time" {
+			val.Field(i).Set(reflect.ValueOf(doc[tagname]))
+		} else {
+			switch doc[tagname].(type) { // avoid type mismatch
+			case int64:
+				val.Field(i).Set(reflect.ValueOf(float64(doc[tagname].(int64))))
+			default:
+				val.Field(i).Set(reflect.ValueOf(doc[tagname]))
+			}
+		}
+	}
 }
