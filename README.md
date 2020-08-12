@@ -248,7 +248,7 @@ Back-end module of smartfarmer
    등록 가능한 기기라면 `200 OK`를 반환합니다.
    
    | method |        path         |   request   |       response       |
-| :----: | :-----------------: | :---------: | :------------------: |
+   | :----: | :-----------------: | :---------: | :------------------: |
    | `POST` | /CheckDeviceOverlap | (JSON) uuid | (string) 에러 메세지 |
 
    - Request body 예시
