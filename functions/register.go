@@ -6,18 +6,20 @@ import (
 	"fmt"
 	"net/http"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
 
 	"cloud.google.com/go/firestore"
-	"google.golang.org/api/iterator"
 )
 
 // RegisterDevice appends a new device information to the existing device list.
 // exported to https://asia-northeast1-superfarmers.cloudfunctions.net/RegisterDevice
 func RegisterDevice(writer http.ResponseWriter, request *http.Request) {
 	var data = new(struct {
-		Email string `json:"email"`
-		UUID  string `json:"uuid"`
+		UID  string `json:"uid"`
+		UUID string `json:"uuid"`
 	})
 
 	if err := json.NewDecoder(request.Body).Decode(data); err != nil {
@@ -27,17 +29,25 @@ func RegisterDevice(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
 
 	doc, err := client.Collection("farmers").
-		Where("email", "==", data.Email).
-		Documents(context.Background()).
-		Next()
+		Doc(data.UID).
+		Get(context.Background())
 
-	if err != iterator.Done && err != nil {
-		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Get: %v", err), http.StatusInternalServerError)
+		return
+	}
+	if _, err = client.Collection("devices").
+		Doc(data.UUID).
+		Set(context.Background(),
+			map[string]bool{
+				"in_use": true,
+			}); err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
 		return
 	}
 	if _, err = doc.Ref.Set(context.Background(),
-		map[string][]string{
-			"device_uuid": append(doc.Data()["device_uuid"].([]string), data.UUID),
+		map[string][]interface{}{
+			"device_uuid": append(doc.Data()["device_uuid"].([]interface{}), data.UUID),
 		}, firestore.MergeAll); err != nil {
 		http.Error(writer, fmt.Sprintf("firestore.Set: %v", err), http.StatusInternalServerError)
 		return
@@ -48,7 +58,7 @@ func RegisterDevice(writer http.ResponseWriter, request *http.Request) {
 // exported to https://asia-northeast1-superfarmers.cloudfunctions.net/RegisterRecipe
 func RegisterRecipe(writer http.ResponseWriter, request *http.Request) {
 	var data = new(struct {
-		Email  string        `json:"email"`
+		UID    string        `json:"uid"`
 		UUID   string        `json:"uuid"`
 		Recipe shared.Recipe `json:"recipe"`
 	})
@@ -60,12 +70,11 @@ func RegisterRecipe(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
 
 	doc, err := client.Collection("farmers").
-		Where("email", "==", data.Email).
-		Documents(context.Background()).
-		Next()
+		Doc(data.UID).
+		Get(context.Background())
 
-	if err != iterator.Done && err != nil {
-		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Get: %v", err), http.StatusInternalServerError)
 		return
 	}
 	if _, err = doc.Ref.Collection("recipe").
@@ -89,20 +98,22 @@ func CheckDeviceOverlap(writer http.ResponseWriter, request *http.Request) {
 	}
 	defer request.Body.Close()
 
-	snapshot, err := client.Collection("farmers").
-		Documents(context.Background()).
-		GetAll()
+	doc, err := client.Collection("devices").
+		Doc(device.UUID).
+		Get(context.Background())
 
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("firestore.GetAll: %v", err), http.StatusInternalServerError)
+	if status.Code(err) == codes.NotFound {
+		http.Error(writer, fmt.Sprintf("unregistered device: %v", err), http.StatusNotFound)
 		return
 	}
-	for _, doc := range snapshot {
-		var uuids = doc.Data()["device_uuid"].([]interface{})
-		for _, uuid := range uuids {
-			if device.UUID == uuid.(string) {
-				http.Error(writer, fmt.Sprintf("duplicate id: %s", uuid), http.StatusForbidden)
-			}
-		}
+
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Get: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if doc.Data()["in_use"].(bool) {
+		http.Error(writer, fmt.Sprintf("duplicated device: %s", device.UUID), http.StatusForbidden)
+		return
 	}
 }

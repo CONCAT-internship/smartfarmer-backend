@@ -55,25 +55,26 @@ Back-end module of smartfarmer
 
      데이터에 이상값이 감지되면 **abnormal** 컬렉션엔 다음과 같은 정보가 기록됩니다.
 
-     ![sample](https://user-images.githubusercontent.com/29545214/89779887-48491280-db4b-11ea-8aa7-f25f8655a3d3.png)
+     ![sample](https://user-images.githubusercontent.com/29545214/89992407-32109300-dcc0-11ea-84c0-bd85ede9a16d.png)
 
      - uuid: (string) 아두이노 기기의 고유 번호
      - errors: (Array&lt;number&gt;) 에러 코드
-
+- time: (number) 에러 발생 시각 (UTC+0 기준)
      
 
-     다음은 `errors` 필드의 에러 코드들에 대한 명세입니다.
-
-     ![sample](https://user-images.githubusercontent.com/29545214/89780645-d07be780-db4c-11ea-8592-3ce34112cbad.png)
-
-     또한 **desired_status** 컬렉션의 document id가 uuid와 일치하는 문서를 다음과 같이 업데이트합니다.
-
-     ![sample](https://user-images.githubusercontent.com/29545214/89779997-847c7300-db4b-11ea-808d-235a7047af89.png)
-
-     이에 대한 내용은 `DesiredStatus` API를 호출하여 확인할 수 있습니다.
-
-     `4. /DesiredStatus` 를 참고해주세요.
-
+     
+다음은 `errors` 필드의 에러 코드들에 대한 명세입니다.
+     
+![sample](https://user-images.githubusercontent.com/29545214/89780645-d07be780-db4c-11ea-8592-3ce34112cbad.png)
+     
+또한 **desired_status** 컬렉션의 document id가 uuid와 일치하는 문서를 다음과 같이 업데이트합니다.
+     
+![sample](https://user-images.githubusercontent.com/29545214/89779997-847c7300-db4b-11ea-808d-235a7047af89.png)
+     
+이에 대한 내용은 `DesiredStatus` API를 호출하여 확인할 수 있습니다.
+     
+`4. /DesiredStatus` 를 참고해주세요.
+     
      
 
 
@@ -192,11 +193,11 @@ Back-end module of smartfarmer
 
    - Request body 예시
 
-     ​	![sample](https://user-images.githubusercontent.com/29545214/89780330-33b94a00-db4c-11ea-8a17-127638434b46.png)
-     
-     - email: (string) 사용자 이메일
-     - uuid: (string) 등록할 기기의 고유 번호
-   
+     ​	![sample](https://user-images.githubusercontent.com/29545214/89992605-756b0180-dcc0-11ea-9d6e-b1f46188bbe8.png)
+
+     - uid: (string) 사용자 uid
+     - uuid: (string) 기기 고유 번호
+
    
 
 7. /RegisterRecipe
@@ -211,9 +212,9 @@ Back-end module of smartfarmer
 
    - Request body 예시
 
-     ​	![sample](https://user-images.githubusercontent.com/29545214/89899596-80208a80-dc1d-11ea-91a7-f45f687788c3.png)
+     ​	![sample](https://user-images.githubusercontent.com/29545214/89992893-e7434b00-dcc0-11ea-8819-660b54f355f7.png)
      
-     - email: (string) 사용자 이메일
+     - uid: (string) 사용자 uid
      - uuid: (string) 기기 고유번호
      - crop: (string) 작물명
      - farm_name: (string) 농장명
@@ -240,17 +241,19 @@ Back-end module of smartfarmer
 
    기기 중복 여부를 검사합니다.
 
-   만약 DB에 uuid가 동일한 기기가 등록돼있다면 403 에러를 반환합니다.
+   등록돼있지 않은 기기라면 `404 Not Found` 에러를 반환합니다.
 
-   uuid가 동일한 기기가 없다면 200 OK를 반환합니다.
+   사용중인 기기라면 `403 Forbidden` 에러를 반환합니다.
 
+   등록 가능한 기기라면 `200 OK`를 반환합니다.
+   
    | method |        path         |   request   |       response       |
-   | :----: | :-----------------: | :---------: | :------------------: |
+| :----: | :-----------------: | :---------: | :------------------: |
    | `POST` | /CheckDeviceOverlap | (JSON) uuid | (string) 에러 메세지 |
 
    - Request body 예시
 
      ![sample](https://user-images.githubusercontent.com/29545214/89897823-9842da80-dc1a-11ea-8c33-1d87513e8362.png)
-
+   
      - uuid: (string) 기기 고유 번호
 

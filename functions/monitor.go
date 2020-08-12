@@ -16,7 +16,7 @@ func Monitor(writer http.ResponseWriter, request *http.Request) {
 
 	var base = time.Now().Unix() - 2*shared.TRANSMISSION_CYCLE*60
 
-	lastRecords, err := client.Collection("sensor_data").
+	history, err := client.Collection("sensor_data").
 		Where("unix_time", ">=", base).
 		Documents(context.Background()).
 		GetAll()
@@ -25,7 +25,14 @@ func Monitor(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.GetAll: %v", err), http.StatusInternalServerError)
 		return
 	}
-	farmers, err := client.Collection("farmers").
+
+	var idSet = make(map[string]struct{})
+	for _, doc := range history {
+		idSet[doc.Data()["uuid"].(string)] = struct{}{}
+	}
+
+	inUse, err := client.Collection("devices").
+		Where("in_use", "==", true).
 		Documents(context.Background()).
 		GetAll()
 
@@ -33,27 +40,15 @@ func Monitor(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.GetAll: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var recordedDevices map[string]struct{}
 
-	for _, record := range lastRecords {
-		recordedDevices[record.Data()["uuid"].(string)] = struct{}{}
-	}
-	var devices []string
-
-	for _, doc := range farmers {
-		var device_uuids = doc.Data()["device_uuid"].([]interface{})
-		for _, device_uuid := range device_uuids {
-			devices = append(devices, device_uuid.(string))
-		}
-	}
-	for _, device := range devices {
-		if _, exists := recordedDevices[device]; !exists {
+	for _, device := range inUse {
+		if _, exists := idSet[device.Ref.ID]; !exists {
 			if _, _, err = client.Collection("abnormal").
 				Add(context.Background(),
 					map[string]interface{}{
 						"errors": []shared.ErrorCode{shared.CODE_DATA_EMPTY},
 						"time":   time.Now().Unix(),
-						"uuid":   device,
+						"uuid":   device.Ref.ID,
 					}); err != nil {
 				http.Error(writer, fmt.Sprintf("firestore.Add: %v", err), http.StatusInternalServerError)
 				return
