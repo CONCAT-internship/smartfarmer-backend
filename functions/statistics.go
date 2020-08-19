@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/maengsanha/smartfarmer-backend/shared/sensor"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/sensor"
 	"google.golang.org/api/iterator"
 )
 

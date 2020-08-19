@@ -7,7 +7,9 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/firestore"
-	"github.com/maengsanha/smartfarmer-backend/shared/recipe"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/recipe"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // RegisterDevice appends a new device information to the existing device list.

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/maengsanha/smartfarmer-backend/functions/shared/code"
-	"github.com/maengsanha/smartfarmer-backend/shared/sensor"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/sensor"
 )
 
 // Monitor checks whether the devices are working properly.
