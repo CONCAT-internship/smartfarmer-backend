@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/maengsanha/smartfarmer-backend/functions/shared"
-	"google.golang.org/api/iterator"
-
 	"cloud.google.com/go/firestore"
+	"github.com/maengsanha/smartfarmer-backend/shared/sensor"
+	"google.golang.org/api/iterator"
 )
 
 // RecentStatus returns the latest status of the farm.
@@ -29,7 +28,7 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var data = new(shared.SensorData)
+	var data = new(sensor.Data)
 	data.FromMap(doc.Data())
 
 	writer.Header().Set("Content-Type", "application/json")

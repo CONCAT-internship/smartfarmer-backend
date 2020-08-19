@@ -6,11 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/maengsanha/smartfarmer-backend/functions/shared"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"cloud.google.com/go/firestore"
+	"github.com/maengsanha/smartfarmer-backend/shared/recipe"
 )
 
 // RegisterDevice appends a new device information to the existing device list.
@@ -59,7 +56,7 @@ func RegisterRecipe(writer http.ResponseWriter, request *http.Request) {
 	var data = new(struct {
 		UID    string        `json:"uid"`
 		UUID   string        `json:"uuid"`
-		Recipe shared.Recipe `json:"recipe"`
+		Recipe recipe.Recipe `json:"recipe"`
 	})
 
 	if err := json.NewDecoder(request.Body).Decode(data); err != nil {

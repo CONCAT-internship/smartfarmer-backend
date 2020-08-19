@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/maengsanha/smartfarmer-backend/functions/shared"
+	"github.com/maengsanha/smartfarmer-backend/shared/sensor"
 	"google.golang.org/api/iterator"
 )
 
@@ -27,7 +27,7 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 
 	const day_time = 24 * 60 * 60
 
-	var datas = make([][]shared.SensorData, 7)
+	var datas = make([][]sensor.Data, 7)
 
 	var cursor = client.Collection("sensor_data").
 		Where("uuid", "==", uuid).
@@ -45,7 +45,7 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, fmt.Sprintf("firestore.Next: %v", err), http.StatusInternalServerError)
 			return
 		}
-		var data = new(shared.SensorData)
+		var data = new(sensor.Data)
 		data.FromMap(doc.Data())
 		var idx = (int(data.UnixTime) - base) / day_time
 		datas[idx] = append(datas[idx], *data)
@@ -65,7 +65,7 @@ func DailyAverage(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func average(datas []shared.SensorData) map[string]float64 {
+func average(datas []sensor.Data) map[string]float64 {
 	var avg = make(map[string]float64)
 	if len(datas) > 0 {
 		for _, data := range datas {
@@ -108,7 +108,7 @@ func Records(writer http.ResponseWriter, request *http.Request) {
 
 	var cursor = client.Collection("sensor_data").
 		Where("uuid", "==", data.UUID).
-		OrderBy("unix_time", firestore.Desc).
+		OrderBy("unix_time", firestore.Asc).
 		Where("unix_time", ">=", time.Now().Unix()-data.Time).
 		Documents(context.Background())
 

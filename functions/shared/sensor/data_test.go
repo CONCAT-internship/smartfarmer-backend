@@ -1,4 +1,4 @@
-package shared
+package sensor
 
 import (
 	"reflect"
@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-func TestSensorData_FromMap(t *testing.T) {
-	var sensor_data = new(SensorData)
-	sensor_data.FromMap(map[string]interface{}{
+func TestData(t *testing.T) {
+	var data = new(Data)
+	data.FromMap(map[string]interface{}{
 		"uuid":               "756e6b776f000c04",
 		"temperature":        int64(30),
 		"humidity":           int64(60),
@@ -24,7 +24,7 @@ func TestSensorData_FromMap(t *testing.T) {
 		"light_time":         int64(0),
 		"dark_time":          int64(0),
 	})
-	var target = SensorData{
+	var target = Data{
 		UUID:              "756e6b776f000c04",
 		Temperature:       30.0,
 		Humidity:          60.0,
@@ -40,7 +40,7 @@ func TestSensorData_FromMap(t *testing.T) {
 		LightTime:         0.0,
 		DarkTime:          0.0,
 	}
-	if !reflect.DeepEqual(*sensor_data, target) {
-		t.Errorf("value mismatch: %v", *sensor_data)
+	if !reflect.DeepEqual(*data, target) {
+		t.Errorf("value mismatch: %v", *data)
 	}
 }
