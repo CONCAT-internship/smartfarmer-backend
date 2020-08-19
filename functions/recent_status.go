@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
-
+	"github.com/maengsanha/smartfarmer-backend/functions/shared"
 	"google.golang.org/api/iterator"
 
 	"cloud.google.com/go/firestore"

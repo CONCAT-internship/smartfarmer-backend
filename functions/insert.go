@@ -8,10 +8,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared"
 
 	"google.golang.org/api/iterator"
-
-	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
 )
 
 // Insert stores a sensor data into Firestore.

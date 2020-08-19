@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared"
 )
 
 // Monitor checks whether the devices are working properly.
