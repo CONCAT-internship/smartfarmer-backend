@@ -10,7 +10,6 @@ import (
 )
 
 // Control changes the device state by chaning the desired status.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Control
 func Control(writer http.ResponseWriter, request *http.Request) {
 	var desired = new(struct {
 		UUID   string `json:"uuid"`

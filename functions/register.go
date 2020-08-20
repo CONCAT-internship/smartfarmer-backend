@@ -13,7 +13,6 @@ import (
 )
 
 // RegisterDevice appends a new device information to the existing device list.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/RegisterDevice
 func RegisterDevice(writer http.ResponseWriter, request *http.Request) {
 	var data = new(struct {
 		UID  string `json:"uid"`

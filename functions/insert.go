@@ -14,7 +14,6 @@ import (
 )
 
 // Insert stores a sensor data into Firestore.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Insert
 func Insert(writer http.ResponseWriter, request *http.Request) {
 	var data = new(sensor.Data)
 	if err := json.NewDecoder(request.Body).Decode(data); err != nil {

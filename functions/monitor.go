@@ -11,7 +11,6 @@ import (
 )
 
 // Monitor checks whether the devices are working properly.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Monitor
 func Monitor(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
 

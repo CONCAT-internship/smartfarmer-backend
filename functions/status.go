@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 
 	"cloud.google.com/go/firestore"
@@ -12,7 +13,6 @@ import (
 )
 
 // RecentStatus returns the latest status of the farm.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/RecentStatus
 func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 	var uuid = request.URL.Query().Get("uuid")
 	defer request.Body.Close()
@@ -45,6 +45,30 @@ func RecentStatus(writer http.ResponseWriter, request *http.Request) {
 		"unix_time":          data.UnixTime,
 		"local_time":         data.LocalTime,
 	}); err != nil {
+		http.Error(writer, fmt.Sprintf("json.Encode: %v", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+func round2SecondDecimal(data float64) float64 {
+	return math.Round(data*10) / 10
+}
+
+// DesiredStatus returns the desired status of the device.
+func DesiredStatus(writer http.ResponseWriter, request *http.Request) {
+	var uuid = request.URL.Query().Get("uuid")
+	defer request.Body.Close()
+
+	doc, err := client.Collection("desired_status").
+		Doc(uuid).
+		Get(context.Background())
+
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("firestore.Get: %v", err), http.StatusInternalServerError)
+		return
+	}
+	writer.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(writer).Encode(doc.Data()); err != nil {
 		http.Error(writer, fmt.Sprintf("json.Encode: %v", err), http.StatusInternalServerError)
 		return
 	}
