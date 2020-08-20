@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/code"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/sensor"
 )
 
 // Monitor checks whether the devices are working properly.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/Monitor
 func Monitor(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
 
-	var base = time.Now().Unix() - 2*shared.TRANSMISSION_CYCLE*60
+	var base = time.Now().Unix() - 2*sensor.TRANSMISSION_CYCLE*60
 
 	history, err := client.Collection("sensor_data").
 		Where("unix_time", ">=", base).
@@ -46,7 +46,7 @@ func Monitor(writer http.ResponseWriter, request *http.Request) {
 			if _, _, err = client.Collection("abnormal").
 				Add(context.Background(),
 					map[string]interface{}{
-						"errors": []shared.ErrorCode{shared.CODE_DATA_EMPTY},
+						"errors": []code.Code{code.DATA_EMPTY},
 						"time":   time.Now().Unix(),
 						"uuid":   device.Ref.ID,
 					}); err != nil {

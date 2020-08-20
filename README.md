@@ -4,7 +4,7 @@ Back-end module of smartfarmer
 
 ![build status](https://github.com/CONCAT-internship/smartfarmer-backend/blob/master/assets/images/badge.svg)
 
-
+<br>
 
 **API specification**
 
@@ -13,18 +13,20 @@ Back-end module of smartfarmer
    3. /RecentStatus
    4. /Control
    5. /DesiredStatus
-   6. /Records
+   6. /LookupByPeriod
+   6. /LookupByNumber
    7. /RegisterDevice
    8. /RegisterRecipe
-   8. /CheckDeviceOverlap
+   9. /CheckDeviceOverlap
+   10. /ProfileFarmer
 
-
+<br>
 
 * Server domain
 
   Public DNS(IPv4): `https://asia-northeast1-superfarmers.cloudfunctions.net`
 
-
+<br>
 
 1. /Insert
 
@@ -59,23 +61,20 @@ Back-end module of smartfarmer
 
      - uuid: (string) 아두이노 기기의 고유 번호
      - errors: (Array&lt;number&gt;) 에러 코드
-- time: (number) 에러 발생 시각 (UTC+0 기준)
-     
+     - time: (number) 에러 발생 시각 (UTC+0 기준)
+   
+   
+   
+   다음은 `errors` 필드의 에러 코드들에 대한 명세입니다.
+   ![sample](https://user-images.githubusercontent.com/29545214/89780645-d07be780-db4c-11ea-8592-3ce34112cbad.png)
+    	
+   또한 **desired_status** 컬렉션의 document id가 uuid와 일치하는 문서를 다음과 같이 업데이트합니다. 	
+   ![sample](https://user-images.githubusercontent.com/29545214/89779997-847c7300-db4b-11ea-808d-235a7047af89.png)
+    	
+   이에 대한 내용은 `DesiredStatus` API를 호출하여 확인할 수 있습니다.
+    	
+   `4. /DesiredStatus` 를 참고해주세요.
 
-     
-다음은 `errors` 필드의 에러 코드들에 대한 명세입니다.
-     
-![sample](https://user-images.githubusercontent.com/29545214/89780645-d07be780-db4c-11ea-8592-3ce34112cbad.png)
-     
-또한 **desired_status** 컬렉션의 document id가 uuid와 일치하는 문서를 다음과 같이 업데이트합니다.
-     
-![sample](https://user-images.githubusercontent.com/29545214/89779997-847c7300-db4b-11ea-808d-235a7047af89.png)
-     
-이에 대한 내용은 `DesiredStatus` API를 호출하여 확인할 수 있습니다.
-     
-`4. /DesiredStatus` 를 참고해주세요.
-     
-     
 
 
 2. /RecentStatus
@@ -86,11 +85,9 @@ Back-end module of smartfarmer
    | :----: | :-----------: | :-----------: | :----------------: |
    | `GET`  | /RecentStatus | (string) uuid | (JSON) 최근 상태값 |
 
-   - Query string 예시
-
-     - uuid: (string) 아두이노 기기의 고유번호
-
-       `uuid=123e6b776f000c04`
+   - Query param 예시
+   
+    `/RecentStatus?uuid=123e6b776f000c04`
        
        
 
@@ -142,9 +139,9 @@ Back-end module of smartfarmer
    | :----: | :------------: | :-----------: | :------------: |
    | `GET`  | /DesiredStatus | (string) uuid | (JSON) 상태 값 |
 
-   - Query string 예시
+   - Query param 예시
 
-     `uuid=123e6b776f000c04`
+     `/DesiredStatus?uuid=123e6b776f000c04`
 
    - Response body 예시
 
@@ -157,33 +154,71 @@ Back-end module of smartfarmer
 
      
 
-5. /Records
+5. /LookupByPeriod
 
-   특정 필드의 최근 기록들을 불러옵니다.
+   특정 기간 동안의 최근 기록들을 조회합니다.
 
-   | method |   path   |              request              |      response      |
-   | :----: | :------: | :-------------------------------: | :----------------: |
-   | `POST` | /Records | (JSON) uuid와 필드명, 불러올 시간 | (JSON) 조회한 기록 |
+   | method |      path       |              request              |      response      |
+   | :----: | :-------------: | :-------------------------------: | :----------------: |
+   | `POST` | /LookupByPeriod | (JSON) uuid와 필드명, 조회할 기간 | (JSON) 조회한 기록 |
 
    - Request body 예시
 
-     ![sample](https://user-images.githubusercontent.com/29545214/89780259-079dc900-db4c-11ea-9c8f-8ee4505c0347.png)
+     ![sample](https://user-images.githubusercontent.com/29545214/90769444-36c1f080-e32b-11ea-87e6-97410050e2f9.png)
 
-     - uuid: (string) 조회할 기기의 고유번호
-     - key: (string) 조회할 필드명
-     - time: (number) 조회할 기간(초 단위)
+     - uuid: (string) 조회할 기기 uuid
+     - key: (string) 조회할 필드명. key를 보내지 않을 경우 응답의 `data`필드에 모든 필드가 저장됩니다.
+     - period: (number) 조회할 기간(초 단위)
 
    
 
-   - Response body 예시
+   - Response body 예시 (key=ec인 경우)
 
-     ​	![sample](https://user-images.githubusercontent.com/29545214/89780287-1edcb680-db4c-11ea-871f-73f91a7e1ed4.png)
+     ![sample](https://user-images.githubusercontent.com/29545214/90769136-b7342180-e32a-11ea-9cd4-7406a6fb9d2c.png)
      
-     - local_time: (timestamp) 해당 기록의 등록 시간
+     - local_time: (timestamp) 해당 기록의 등록 시간 (오름차순으로 정렬돼있음)
+     
+     
+     
+   - Response body 예시 (key가 없을 경우)
+
+     ![sample](https://user-images.githubusercontent.com/29545214/90769236-dcc12b00-e32a-11ea-92ce-26c03f39463c.png)
+
+     
+
+6. /LookupByNumber
+
+   특정 갯수만큼의 최근 기록들을 조회합니다.
+
+   | method |      path       |              request              |      response      |
+   | :----: | :-------------: | :-------------------------------: | :----------------: |
+   | `POST` | /LookupByNumber | (JSON) uuid와 필드명, 조회할 갯수 | (JSON) 조회한 기록 |
+
+   - Request body 예시
+
+     ![sample](https://user-images.githubusercontent.com/29545214/90769535-5c4efa00-e32b-11ea-8ebb-a4cc66cc0e7d.png)
+
+     - uuid: (string) 조회할 기기 uuid
+     - key: (string) 조회할 필드명. key를 보내지 않을 경우 응답의 `data`필드에 모든 필드가 저장됩니다.
+     - number: (number) 조회할 갯수
+
+     
+
+   - Response body 예시 (key=ec인 경우)
+
+     ![sample](https://user-images.githubusercontent.com/29545214/90769136-b7342180-e32a-11ea-9cd4-7406a6fb9d2c.png)
+
+     - local_time: (timestamp) 해당 기록의 등록 시간 (오름차순으로 정렬돼있음)
+
+     
+
+   - Response body 예시 (key가 없을 경우)
+
+     ![sample](https://user-images.githubusercontent.com/29545214/90769236-dcc12b00-e32a-11ea-92ce-26c03f39463c.png)
 
    
 
-6. /RegisterDevice
+7. /RegisterDevice
 
    새로운 기기 정보를 등록합니다.
 
@@ -193,14 +228,14 @@ Back-end module of smartfarmer
 
    - Request body 예시
 
-     ​	![sample](https://user-images.githubusercontent.com/29545214/89992605-756b0180-dcc0-11ea-9d6e-b1f46188bbe8.png)
+     ![sample](https://user-images.githubusercontent.com/29545214/89992605-756b0180-dcc0-11ea-9d6e-b1f46188bbe8.png)
 
      - uid: (string) 사용자 uid
      - uuid: (string) 기기 고유 번호
 
    
 
-7. /RegisterRecipe
+8. /RegisterRecipe
 
    작물 재배 레시피를 등록합니다.
 
@@ -212,7 +247,7 @@ Back-end module of smartfarmer
 
    - Request body 예시
 
-     ​	![sample](https://user-images.githubusercontent.com/29545214/89992893-e7434b00-dcc0-11ea-8819-660b54f355f7.png)
+     ![sample](https://user-images.githubusercontent.com/29545214/89992893-e7434b00-dcc0-11ea-8819-660b54f355f7.png)
      
      - uid: (string) 사용자 uid
      - uuid: (string) 기기 고유번호
@@ -237,7 +272,7 @@ Back-end module of smartfarmer
 
 
 
-8. /CheckDeviceOverlap
+9. /CheckDeviceOverlap
 
    기기 중복 여부를 검사합니다.
 
@@ -257,3 +292,24 @@ Back-end module of smartfarmer
    
      - uuid: (string) 기기 고유 번호
 
+
+
+10. /ProfileFarmer
+
+    사용자의 프로필(닉네임과 등록된 스마트팜 정보)을 조회합니다.
+
+    | method |      path      |       request       |       response       |
+    | :----: | :------------: | :-----------------: | :------------------: |
+    | `GET`  | /ProfileFarmer | (string) 사용자 uid | (JSON) 사용자 프로필 |
+
+    - Query param 예시
+
+      - `/ProfileFarmer?uid=Xecm2PHp7QNfCmb0MQOFdJdy5af2`
+
+    - Response body 예시
+
+      ![sample](https://user-images.githubusercontent.com/29545214/90770557-ec417380-e32c-11ea-81bd-34517721894f.png)
+
+      - nickname: (string) 사용자 닉네임
+      - device_uuid: (string) 기기 uuid
+      - farm_name: (string) 농장명

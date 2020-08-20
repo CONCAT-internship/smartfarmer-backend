@@ -16,5 +16,4 @@
 node_modules
 !include:.gitignore
 
-README.md
 *_test.go

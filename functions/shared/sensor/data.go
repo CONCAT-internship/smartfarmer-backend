@@ -1,8 +1,11 @@
-package shared
+package sensor
 
 import (
 	"reflect"
 	"time"
+
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/code"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/recipe"
 )
 
 const (
@@ -26,8 +29,8 @@ const (
 	TRANSMISSION_CYCLE = 3 // data transmission cycle of from device
 )
 
-// SensorData represents a smart farm sensor data.
-type SensorData struct {
+// Data represents a smart farm sensor data.
+type Data struct {
 	UUID              string    `json:"uuid"` // unique id of arduino equipment
 	Temperature       float64   `json:"temperature"`
 	Humidity          float64   `json:"humidity"`
@@ -44,60 +47,60 @@ type SensorData struct {
 	DarkTime          float64   `json:"dark_time"`
 }
 
-// SetTime sets transmission time of s.
-func (s *SensorData) SetTime() {
-	s.LocalTime = time.Now()
-	s.UnixTime = s.LocalTime.Unix()
+// SetTime sets transmission time of d.
+func (d *Data) SetTime() {
+	d.LocalTime = time.Now()
+	d.UnixTime = d.LocalTime.Unix()
 }
 
-// Validate checks whether s works normally and it is appropriate for crop growth.
-func (s SensorData) Validate(r Recipe) ([]ErrorCode, map[string]interface{}) {
-	var errorCodes []ErrorCode
+// Validate checks whether d works normally and is appropriate for crop growth.
+func (d Data) Validate(r recipe.Recipe) ([]code.Code, map[string]interface{}) {
+	var codes []code.Code
 	var requirements = map[string]interface{}{
 		"pH_pump": PH_KEEP,
 		"ec_pump": EC_KEEP,
 	}
-	if s.PH < PH_MIN || s.PH > PH_MAX {
-		errorCodes = append(errorCodes, CODE_PH_MALFUNC)
-	} else if s.PH > r.PHMax {
-		errorCodes = append(errorCodes, CODE_PH_IMPROPER_HIGH)
+	if d.PH < PH_MIN || d.PH > PH_MAX {
+		codes = append(codes, code.PH_MALFUNC)
+	} else if d.PH > r.PHMax {
+		codes = append(codes, code.PH_IMPROPER_HIGH)
 		requirements["pH_pump"] = PH_DEC
-	} else if s.PH < r.PHMin {
-		errorCodes = append(errorCodes, CODE_PH_IMPROPER_LOW)
+	} else if d.PH < r.PHMin {
+		codes = append(codes, code.PH_IMPROPER_LOW)
 		requirements["pH_pump"] = PH_INC
 	}
-	if s.EC < EC_MIN || s.EC > EC_MAX {
-		errorCodes = append(errorCodes, CODE_EC_MALFUNC)
-	} else if s.EC > r.ECMax {
-		errorCodes = append(errorCodes, CODE_EC_IMPROPER_HIGH)
-	} else if s.EC < r.ECMin {
-		errorCodes = append(errorCodes, CODE_EC_IMPROPER_LOW)
+	if d.EC < EC_MIN || d.EC > EC_MAX {
+		codes = append(codes, code.EC_MALFUNC)
+	} else if d.EC > r.ECMax {
+		codes = append(codes, code.EC_IMPROPER_HIGH)
+	} else if d.EC < r.ECMin {
+		codes = append(codes, code.EC_IMPROPER_LOW)
 		requirements["ec_pump"] = EC_INC
 	}
-	if s.Light < 0 || s.Light > 100 {
-		errorCodes = append(errorCodes, CODE_LIGHT_MALFUNC)
+	if d.Light < LIGHT_MIN || d.Light > LIGHT_MAX {
+		codes = append(codes, code.LIGHT_MALFUNC)
 	}
-	if s.Temperature > r.TemperatureMax {
-		errorCodes = append(errorCodes, CODE_TEMPERATURE_IMPROPER_HIGH)
+	if d.Temperature > r.TemperatureMax {
+		codes = append(codes, code.TEMPERATURE_IMPROPER_HIGH)
 		requirements["fan"] = true
 	}
-	if s.Temperature < r.TemperatureMin {
-		errorCodes = append(errorCodes, CODE_TEMPERATURE_IMPROPER_LOW)
+	if d.Temperature < r.TemperatureMin {
+		codes = append(codes, code.TEMPERATURE_IMPROPER_LOW)
 		requirements["fan"] = false
 	}
-	if s.Humidity > r.HumidityMax {
-		errorCodes = append(errorCodes, CODE_HUMIDITY_IMPROPER_HIGH)
+	if d.Humidity > r.HumidityMax {
+		codes = append(codes, code.HUMIDITY_IMPROPER_HIGH)
 	}
-	if s.Humidity < r.HumidityMin {
-		errorCodes = append(errorCodes, CODE_HUMIDITY_IMPROPER_LOW)
+	if d.Humidity < r.HumidityMin {
+		codes = append(codes, code.HUMIDITY_IMPROPER_LOW)
 	}
-	return errorCodes, requirements
+	return codes, requirements
 }
 
-// ToMap converts s to a Firestore document.
-func (s SensorData) ToMap() map[string]interface{} {
+// ToMap converts d to a Firestore document.
+func (d Data) ToMap() map[string]interface{} {
 	var doc = make(map[string]interface{})
-	var val = reflect.ValueOf(s)
+	var val = reflect.ValueOf(d)
 	var typ = val.Type()
 	for i := 0; i < typ.NumField(); i++ {
 		var tagname = typ.Field(i).Tag.Get("json")
@@ -106,9 +109,9 @@ func (s SensorData) ToMap() map[string]interface{} {
 	return doc
 }
 
-// FromMap binds a Firestore document to s.
-func (s *SensorData) FromMap(doc map[string]interface{}) {
-	var val = reflect.ValueOf(s).Elem()
+// FromMap binds a Firestore document to d.
+func (d *Data) FromMap(doc map[string]interface{}) {
+	var val = reflect.ValueOf(d).Elem()
 	var typ = val.Type()
 	for i := 0; i < typ.NumField(); i++ {
 		var tagname = typ.Field(i).Tag.Get("json")

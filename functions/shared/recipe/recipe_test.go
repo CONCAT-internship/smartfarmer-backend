@@ -1,11 +1,11 @@
-package shared
+package recipe
 
 import (
 	"reflect"
 	"testing"
 )
 
-func TestRecipe_FromMap(t *testing.T) {
+func TestRecipe(t *testing.T) {
 	var recipe = new(Recipe)
 	recipe.FromMap(map[string]interface{}{
 		"crop":                         "basil",

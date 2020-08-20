@@ -6,16 +6,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"cloud.google.com/go/firestore"
+	"github.com/maengsanha/smartfarmer-backend/functions/shared/recipe"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/joshua-dev/smartfarmer-backend/functions/shared"
-
-	"cloud.google.com/go/firestore"
 )
 
 // RegisterDevice appends a new device information to the existing device list.
-// exported to https://asia-northeast1-superfarmers.cloudfunctions.net/RegisterDevice
 func RegisterDevice(writer http.ResponseWriter, request *http.Request) {
 	var data = new(struct {
 		UID  string `json:"uid"`
@@ -60,7 +57,7 @@ func RegisterRecipe(writer http.ResponseWriter, request *http.Request) {
 	var data = new(struct {
 		UID    string        `json:"uid"`
 		UUID   string        `json:"uuid"`
-		Recipe shared.Recipe `json:"recipe"`
+		Recipe recipe.Recipe `json:"recipe"`
 	})
 
 	if err := json.NewDecoder(request.Body).Decode(data); err != nil {
