@@ -1,6 +1,4 @@
-#### smartfarmer-backend
-
-Back-end module of smartfarmer
+#### Smart Farmer Backend
 
 ![build status](https://github.com/CONCAT-internship/smartfarmer-backend/blob/master/assets/images/badge.svg)
 
